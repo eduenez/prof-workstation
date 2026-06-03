@@ -85,9 +85,10 @@ bash install.sh
 ### Install a single feature (on a new or existing machine)
 
 ```bash
-bash install.sh tex          # install TeX/LaTeX only
+bash install.sh brew-bundle  # re-run Homebrew installs (add new packages)
 bash install.sh dotfiles     # re-deploy dotfiles
 bash install.sh macos-prefs  # apply macOS system preferences
+bash install.sh vscode       # install / sync VS Code extensions
 ```
 
 Every feature module is **idempotent**: re-running it on a machine where the
@@ -178,7 +179,8 @@ action — credentials are never stored in or injected by this repository:
 3. `gcloud auth login`
 4. `M-x copilot-login` inside Emacs
 5. Retrieve API keys (OpenAI, Anthropic, etc.) from LastPass and add to
-   `~/.zshrc` as `export` statements
+   `~/.zshrc.local` as `export` statements (this file is not managed by
+   this repo and will not be overwritten by re-running `dotfiles`)
 
 ---
 
