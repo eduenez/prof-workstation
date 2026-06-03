@@ -17,6 +17,18 @@ section() { printf '\n\033[1;35m──── %s ────\033[0m\n' "$*"; }
 # ── Utilities ─────────────────────────────────────────────────────────
 command_exists() { command -v "$1" &>/dev/null; }
 
+# ── Homebrew PATH bootstrap ───────────────────────────────────────────
+# Each feature runs in its own subprocess, so eval'd shellenv from a prior
+# feature is never inherited.  Source it here unconditionally so every
+# feature has `brew` in PATH as soon as Homebrew is present on disk.
+if [[ "$(uname -s)" == "Darwin" ]] && ! command -v brew &>/dev/null; then
+    if [[ -x /opt/homebrew/bin/brew ]]; then
+        eval "$(/opt/homebrew/bin/brew shellenv)"   # Apple Silicon / Mac Studio
+    elif [[ -x /usr/local/bin/brew ]]; then
+        eval "$(/usr/local/bin/brew shellenv)"       # Intel Mac
+    fi
+fi
+
 # ── Platform detection ────────────────────────────────────────────────
 OS="$(uname -s)"
 ARCH="$(uname -m)"

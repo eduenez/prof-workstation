@@ -11,10 +11,11 @@ _install_homebrew() {
     info "Installing Homebrew..."
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-    # Make brew available in the current session immediately.
-    if [[ -f /opt/homebrew/bin/brew ]]; then
+    # Activate brew in this subprocess so subsequent steps in this feature can use it.
+    # common.sh handles PATH injection for all other features.
+    if [[ -x /opt/homebrew/bin/brew ]]; then
         eval "$(/opt/homebrew/bin/brew shellenv)"   # Apple Silicon
-    elif [[ -f /usr/local/bin/brew ]]; then
+    elif [[ -x /usr/local/bin/brew ]]; then
         eval "$(/usr/local/bin/brew shellenv)"       # Intel
     fi
 }
