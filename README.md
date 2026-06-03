@@ -126,7 +126,8 @@ prof-workstation/
 │   ├── 10-cloud.sh
 │   ├── 11-ai-tools.sh
 │   ├── 12-macos-prefs.sh   # macOS only
-│   └── 13-secrets.sh
+│   ├── 13-secrets.sh
+│   └── 14-lean.sh
 ├── dotfiles/
 │   ├── zshrc
 │   ├── zprofile

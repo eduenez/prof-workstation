@@ -181,6 +181,18 @@ Update the "Tested" column as features are exercised on the Mac Studio.
   compilation), the whole step is marked failed. Consider adding a retry loop
   or running `Rscript -e 'install.packages(...)'` per-package.
 
+- **`~/.elan/bin` not in `dotfiles/zprofile`.** After `14-lean.sh` runs,
+  `lean` and `lake` shims live in `~/.elan/bin/`. This directory is not added
+  persistently by the managed dotfiles. The feature script adds it for the
+  current session only. Add `[[ -d "$HOME/.elan/bin" ]] && export PATH="$HOME/.elan/bin:$PATH"`
+  to `dotfiles/zprofile` when Lean is confirmed to be part of the permanent setup.
+
+- **Unverified Homebrew entries** (verify with `brew search` on the new machine):
+  `brew "asitop"` — this tool is primarily distributed via PyPI; confirm it is in
+  homebrew-core before relying on it. `cask "ipe"` — the IPE drawing editor may not
+  be in homebrew/cask under that name. If either fails, `brew bundle` will report
+  the error and continue past it.
+
 ---
 
 ## Coding conventions

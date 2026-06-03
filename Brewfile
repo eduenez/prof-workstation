@@ -107,7 +107,7 @@ cask "xquartz"
 
 # ── Modern CLI Alternatives ───────────────────────────────────────────
 brew "tealdeer"          # tldr
-brew "du-dust"           # du replacement
+brew "dust"              # du replacement
 brew "procs"             # ps replacement
 
 # ── Math (isolated) ───────────────────────────────────────────────────
