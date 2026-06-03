@@ -77,7 +77,7 @@ brew "asitop"            # GPU/ANE monitoring for Apple Silicon
 
 # ── Fonts (Nerd Fonts) ────────────────────────────────────────────────
 cask "font-jetbrains-mono-nerd-font"
-cask "font-ibm-plex-mono-nerd-font"
+cask "font-blex-mono-nerd-font"       # IBM Plex Mono — renamed "Blex" in Nerd Fonts (trademark)
 cask "font-iosevka-nerd-font"
 cask "font-symbols-only-nerd-font"  # icon-only fallback for nerd-icons
 
@@ -119,5 +119,5 @@ brew "julia"
 # ── Research Apps (Casks) ─────────────────────────────────────────────
 cask "zotero"
 cask "mathpix-snipping-tool"
-cask "ipe"               # Math-focused drawing tool
+cask "ipe"               # Math-focused drawing tool (deprecated; Gatekeeper failure from 2026-09-01)
 cask "obsidian"          # Knowledge management / research notes
