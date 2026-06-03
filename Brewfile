@@ -1,5 +1,5 @@
 # Brewfile — All Homebrew packages, casks, and fonts.
-# Run with: brew bundle --file=Brewfile --no-lock --no-upgrade
+# Run with: brew bundle install --file=Brewfile --no-upgrade
 #
 # Notable large installs:
 #   mactex-no-gui  ~5 GB  — full TeX Live without GUI apps

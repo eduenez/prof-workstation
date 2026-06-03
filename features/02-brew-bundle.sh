@@ -14,7 +14,7 @@ _brew_bundle() {
         return 1
     fi
     info "Running brew bundle (this may take a while for large casks)..."
-    brew bundle --file="$REPO_DIR/Brewfile" --no-lock --no-upgrade
+    brew bundle install --file="$REPO_DIR/Brewfile" --no-upgrade
 }
 
 run_step "brew bundle" _brew_bundle
