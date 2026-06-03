@@ -54,3 +54,8 @@ For your industry consulting, HuggingFace, and distributed computing pipeline, b
 •	You can use uv to spin up isolated environments for your Ray scripts in milliseconds. It will cleanly match whatever python version your remote Anyscale clusters require (uv venv --python 3.10), and you will never have to worry about a slow conda install or a broken dependency tree.
 By using Homebrew Casks or Conda exclusively for your heavy mathematical suites, and reserving uv for your lightning-fast AI/Ray engineering, you prevent the math stack from polluting the AI stack and vice versa.
 <|im_end|>
+<|im_start|>user
+I like all your suggestions, but let me add some context to your recommendation of Zotero and related tools. I have imminent plans to implement my own "in-house" Knowledge Management System (KMS); read files @~/repos/KMS/README.md and @~/repos/KMS/AGENTS.md for context. I think that the planned KMS will make Zotero unnecessary, and is in fact philosophically (if not technologically) incompatible with the KMS; what is your opinion on this?
+I do not think that installing Zotero and related tools will cause harm to my KMS plans (I could simply install but not use those tools when the KMS is up and running), so it's okay to install everything you suggested (lest you advise otherwise based on this context).
+With that potential caveat and additional context, go-ahead to implement all your suggestions. Pause to ask if in doubt.
+<|im_end|>

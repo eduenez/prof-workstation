@@ -49,6 +49,15 @@ _prefs_screenshots() {
     defaults write com.apple.screencapture type           -string "png"
 }
 
+_prefs_misc() {
+    # Show the ~/Library folder
+    chflags nohidden ~/Library
+    # Show the /Volumes folder (requires sudo, but we don't block for it)
+    sudo chflags nohidden /Volumes 2>/dev/null || true
+    # Disable the "Are you sure you want to open this application?" dialog
+    defaults write com.apple.LaunchServices LSQuarantine -bool false
+}
+
 _restart_ui() {
     info "Restarting Finder and Dock..."
     killall Finder 2>/dev/null || true
@@ -59,6 +68,7 @@ run_step "Finder"      _prefs_finder
 run_step "Keyboard"    _prefs_keyboard
 run_step "Dock"        _prefs_dock
 run_step "Screenshots" _prefs_screenshots
+run_step "Misc"        _prefs_misc
 _restart_ui
 
 summary_report

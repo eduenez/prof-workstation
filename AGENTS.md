@@ -141,6 +141,7 @@ citizen but receives less testing.
 | `11-ai-tools` | ✓ | — |
 | `12-macos-prefs` | ✓ | — |
 | `13-secrets` | ✓ | — |
+| `14-lean` | ✓ | — |
 
 Update the "Tested" column as features are exercised on the Mac Studio.
 

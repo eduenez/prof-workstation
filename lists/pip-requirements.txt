@@ -61,3 +61,12 @@ typer
 httpx
 pydantic
 python-dotenv
+
+# ── Research Tracking & Config ───────────────────────────────────────
+wandb
+hydra-core
+
+# ── Advanced Math/AI ──────────────────────────────────────────────────
+jax
+jaxlib
+manim

@@ -40,14 +40,15 @@ tools, fonts, and GUI applications.
 | `r-pkgs` | R package bootstrap script |
 | `cloud` | GitHub CLI (`gh`) and Google Cloud SDK (`gcloud`) auth |
 | `ai-tools` | Ollama, Claude CLI, Gemini CLI |
-| `macos-prefs` | Dock, Finder, keyboard settings via `defaults write` |
+| `macos-prefs` | Dock, Finder, keyboard settings, and dev-friendly defaults |
 | `secrets` | Printed checklist: SSH keys, auth tokens, API keys |
+| `lean` | Lean 4 formal verification environment via `elan` |
 
 **Homebrew Brewfile covers:**
 core Unix tools · Git · TeX Live (via `mactex-no-gui`) · pandoc · gnuplot ·
 asymptote · Emacs · SBCL · Node.js · Ruby · R · SageMath (isolated cask) ·
-Nerd Fonts · iTerm2 · Chrome · Firefox · Brave · Signal · WhatsApp · Zoom ·
-VLC · VS Code · and more.
+Lean 4 · Julia · Nerd Fonts · iTerm2 · Chrome · Firefox · Brave · Signal ·
+WhatsApp · Zoom · VLC · VS Code · Zotero · Obsidian · and more.
 
 ---
 

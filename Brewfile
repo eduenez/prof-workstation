@@ -73,6 +73,7 @@ cask "google-cloud-sdk"
 
 # ── AI tools ─────────────────────────────────────────────────────────
 cask "ollama"
+brew "asitop"            # GPU/ANE monitoring for Apple Silicon
 
 # ── Fonts (Nerd Fonts) ────────────────────────────────────────────────
 cask "font-jetbrains-mono-nerd-font"
@@ -104,5 +105,19 @@ cask "vlc"
 cask "karabiner-elements"
 cask "xquartz"
 
+# ── Modern CLI Alternatives ───────────────────────────────────────────
+brew "tealdeer"          # tldr
+brew "du-dust"           # du replacement
+brew "procs"             # ps replacement
+
 # ── Math (isolated) ───────────────────────────────────────────────────
 cask "sage"              # standalone SageMath; carries its own Python — never mix with uv
+brew "elan-init"         # Lean 4 version manager
+brew "z3"                # SMT solver for AI/Logic
+brew "julia"
+
+# ── Research Apps (Casks) ─────────────────────────────────────────────
+cask "zotero"
+cask "mathpix-snipping-tool"
+cask "ipe"               # Math-focused drawing tool
+cask "obsidian"          # Knowledge management / research notes

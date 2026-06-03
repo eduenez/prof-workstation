@@ -77,5 +77,9 @@ ms-dotnettools.csharp
 ms-dotnettools.csdevkit
 ms-dotnettools.vscode-dotnet-runtime
 
+# ── Math / Formal Methods ─────────────────────────────────────────────
+leanprover.lean4
+julialang.language-julia
+
 # ── Live Share ────────────────────────────────────────────────────────
 ms-vsliveshare.vsliveshare
