@@ -1,0 +1,27 @@
+# ~/.ssh/config — SSH client configuration template.
+# Deployed by features/04-dotfiles.sh; fill in host entries manually.
+
+Host *
+    AddKeysToAgent      yes
+    UseKeychain         yes        # macOS Keychain integration; remove on Linux
+    IdentityFile        ~/.ssh/id_ed25519
+    ServerAliveInterval 60
+    ServerAliveCountMax 3
+
+# ── Example host entries (uncomment and customise) ──────────────────
+#
+# Host myserver
+#     HostName        example.com
+#     User            myuser
+#     IdentityFile    ~/.ssh/id_ed25519
+#     Port            22
+#
+# Host jump
+#     HostName        jump.example.com
+#     User            myuser
+#     ForwardAgent    yes
+#
+# Host internal
+#     HostName        10.0.0.5
+#     User            myuser
+#     ProxyJump       jump

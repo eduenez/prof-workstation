@@ -1,0 +1,29 @@
+[user]
+	name  = {{NAME}}
+	email = {{EMAIL}}
+
+[credential]
+	helper = osxkeychain
+
+[pull]
+	rebase = true
+
+[push]
+	autoSetupRemote = true
+
+[core]
+	excludesfile = ~/.gitignore_global
+	autocrlf     = input
+
+[filter "lfs"]
+	clean    = git-lfs clean -- %f
+	smudge   = git-lfs smudge -- %f
+	process  = git-lfs filter-process
+	required = true
+
+[alias]
+	lg  = log --oneline --graph --decorate --all
+	st  = status -sb
+	com = commit
+	co  = checkout
+	br  = branch -vv

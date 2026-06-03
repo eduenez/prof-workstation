@@ -1,0 +1,63 @@
+# pip-requirements.txt — Python packages installed via uv.
+# Usage: uv pip install -r lists/pip-requirements.txt
+#
+# Install into a project venv:   uv venv && uv pip install -r lists/pip-requirements.txt
+# Install globally with uv tool: uv tool install <package>
+#
+# PyTorch: install separately with the correct platform flags, e.g.:
+#   uv pip install torch torchvision torchaudio
+# (uv resolves the correct Apple Silicon / CUDA wheel automatically)
+
+# ── Scientific computing ──────────────────────────────────────────────
+numpy
+scipy
+pandas
+matplotlib
+seaborn
+scikit-learn
+sympy
+statsmodels
+
+# ── Deep learning ─────────────────────────────────────────────────────
+torch
+torchvision
+torchaudio
+transformers
+datasets
+accelerate
+peft
+trl
+sentence-transformers
+
+# ── AI APIs ───────────────────────────────────────────────────────────
+anthropic
+openai
+google-generativeai
+google-cloud-aiplatform
+
+# ── Ray / distributed computing ───────────────────────────────────────
+ray[default]
+ray[air]
+
+# ── Jupyter ───────────────────────────────────────────────────────────
+jupyterlab
+notebook
+ipykernel
+ipywidgets
+nbconvert
+
+# ── Development tools ─────────────────────────────────────────────────
+pyright
+black
+ruff
+pytest
+pytest-cov
+mypy
+
+# ── Utilities ─────────────────────────────────────────────────────────
+tqdm
+rich
+typer
+httpx
+pydantic
+python-dotenv

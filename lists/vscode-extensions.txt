@@ -1,0 +1,81 @@
+# vscode-extensions.txt — VS Code extension IDs.
+# Used by features/06-vscode.sh (code --install-extension).
+
+# ── Python ────────────────────────────────────────────────────────────
+ms-python.python
+ms-python.vscode-pylance
+ms-python.debugpy
+ms-python.black-formatter
+ms-python.pylint
+ms-python.flake8
+charliermarsh.ruff
+ms-python.vscode-python-envs
+
+# ── Jupyter ───────────────────────────────────────────────────────────
+ms-toolsai.jupyter
+ms-toolsai.jupyter-keymap
+ms-toolsai.jupyter-renderers
+ms-toolsai.vscode-jupyter-cell-tags
+ms-toolsai.vscode-jupyter-slideshow
+
+# ── LaTeX ─────────────────────────────────────────────────────────────
+james-yu.latex-workshop
+
+# ── AI ────────────────────────────────────────────────────────────────
+anthropic.claude-code
+openai.chatgpt
+
+# ── Git ───────────────────────────────────────────────────────────────
+eamodio.gitlens
+github.vscode-pull-request-github
+github.vscode-github-actions
+
+# ── Remote development ────────────────────────────────────────────────
+ms-vscode-remote.remote-ssh
+ms-vscode-remote.remote-ssh-edit
+ms-vscode-remote.remote-containers
+ms-vscode-remote.remote-wsl
+ms-vscode.remote-explorer
+
+# ── Containers ────────────────────────────────────────────────────────
+ms-azuretools.vscode-containers
+
+# ── Markdown ──────────────────────────────────────────────────────────
+yzhang.markdown-all-in-one
+shd101wyy.markdown-preview-enhanced
+
+# ── Common Lisp / Scheme ──────────────────────────────────────────────
+mattn.lisp
+rebornix.scheme
+release-candidate.vscode-scheme-repl
+abhi18av-vscode.chez-scheme-vscode
+
+# ── SageMath ──────────────────────────────────────────────────────────
+lov3.sagemath-enhanced
+
+# ── Emacs keybindings ─────────────────────────────────────────────────
+tuttieee.emacs-mcx
+
+# ── PDF / documents ───────────────────────────────────────────────────
+tomoki1207.pdf
+tootone.org-mode
+
+# ── Utilities ─────────────────────────────────────────────────────────
+ryu1kn.partial-diff
+amitkhonde.better-find-and-replace
+ms-vscode.makefile-tools
+
+# ── Google Colab ──────────────────────────────────────────────────────
+google.colab
+renxzen.google-colab-theme
+
+# ── Ray / Anyscale ────────────────────────────────────────────────────
+anyscalecompute.anyscale-workspaces
+
+# ── .NET (teaching) ───────────────────────────────────────────────────
+ms-dotnettools.csharp
+ms-dotnettools.csdevkit
+ms-dotnettools.vscode-dotnet-runtime
+
+# ── Live Share ────────────────────────────────────────────────────────
+ms-vsliveshare.vsliveshare

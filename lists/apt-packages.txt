@@ -1,0 +1,68 @@
+# apt-packages.txt — System packages for Ubuntu/Debian (Linux / WSL).
+# Used by features/03-apt-pkgs.sh.
+# Notes:
+#   gh (GitHub CLI) is added via its own apt repo in 03-apt-pkgs.sh.
+#   For Node.js >18, add NodeSource repo separately if the distro default is too old.
+#   bat may install as 'batcat' on Ubuntu <22.04; symlink manually if needed.
+
+# ── Build toolchain ───────────────────────────────────────────────────
+build-essential
+cmake
+automake
+autoconf
+pkg-config
+libtool
+
+# ── Core Unix ─────────────────────────────────────────────────────────
+coreutils
+findutils
+grep
+wget
+curl
+git
+git-lfs
+tmux
+htop
+tree
+ripgrep
+fd-find
+bat
+fzf
+jq
+
+# ── Languages ─────────────────────────────────────────────────────────
+nodejs
+npm
+r-base
+r-base-dev
+sbcl
+
+# ── Python build dependencies (for uv-managed Python) ────────────────
+python3-dev
+libssl-dev
+libffi-dev
+zlib1g-dev
+
+# ── Emacs and dependencies ────────────────────────────────────────────
+emacs
+libenchant-2-dev
+libpoppler-glib-dev
+libpoppler-private-dev
+libpng-dev
+imagemagick
+libmagickwand-dev
+djvulibre-bin
+
+# ── LaTeX / typesetting ───────────────────────────────────────────────
+texlive-full
+pandoc
+gnuplot
+asymptote
+ghostscript
+graphviz
+
+# ── Cloud and dev tools ───────────────────────────────────────────────
+gh
+
+# ── Fonts (terminal Nerd Fonts not available via apt — install manually) ─
+fontconfig

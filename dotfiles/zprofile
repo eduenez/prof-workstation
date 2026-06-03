@@ -1,0 +1,25 @@
+# ~/.zprofile — Login shell configuration.
+# Sets up PATH for Homebrew, rbenv, Google Cloud SDK.
+# Sourced once per login session (before .zshrc).
+
+# ── Homebrew ──────────────────────────────────────────────────────────
+if [[ -f /opt/homebrew/bin/brew ]]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"   # Apple Silicon
+elif [[ -f /usr/local/bin/brew ]]; then
+    eval "$(/usr/local/bin/brew shellenv)"       # Intel
+fi
+
+# ── rbenv ─────────────────────────────────────────────────────────────
+if command -v rbenv &>/dev/null; then
+    eval "$(rbenv init - --no-rehash zsh)"
+fi
+
+# ── Google Cloud SDK ──────────────────────────────────────────────────
+_gcloud_prefix="$(brew --prefix 2>/dev/null)/Caskroom/google-cloud-sdk/latest/google-cloud-sdk"
+[[ -f "$_gcloud_prefix/path.zsh.inc"       ]] && source "$_gcloud_prefix/path.zsh.inc"
+[[ -f "$_gcloud_prefix/completion.zsh.inc" ]] && source "$_gcloud_prefix/completion.zsh.inc"
+unset _gcloud_prefix
+
+# ── opam (OCaml) ──────────────────────────────────────────────────────
+[[ -r "$HOME/.opam/opam-init/init.zsh" ]] && \
+    source "$HOME/.opam/opam-init/init.zsh" > /dev/null 2>&1
