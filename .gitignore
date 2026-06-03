@@ -1,0 +1,3 @@
+# Emacs auto-save files (#foo#) and lock files (.#foo)
+*#
+.#*
