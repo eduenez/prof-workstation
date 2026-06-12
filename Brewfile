@@ -77,7 +77,7 @@ brew "asitop"            # GPU/ANE monitoring for Apple Silicon
 
 # ── Fonts (Nerd Fonts) ────────────────────────────────────────────────
 cask "font-jetbrains-mono-nerd-font"
-cask "font-blex-mono-nerd-font"       # IBM Plex Mono — renamed "Blex" in Nerd Fonts (trademark)
+cask "font-blex-mono-nerd-font"
 cask "font-iosevka-nerd-font"
 cask "font-symbols-only-nerd-font"  # icon-only fallback for nerd-icons
 
