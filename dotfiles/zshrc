@@ -32,3 +32,6 @@ alias tmucs='tmux -CC new -A -s main'
 
 # ── Local overrides ───────────────────────────────────────────────────
 [[ -f "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"
+
+[ -n "$EAT_SHELL_INTEGRATION_DIR" ] && \
+    source "$EAT_SHELL_INTEGRATION_DIR/zsh"
