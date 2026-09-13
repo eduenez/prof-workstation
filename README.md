@@ -21,6 +21,9 @@ tools, fonts, and GUI applications.
 > **Note:** This repository targets the *new* macOS environment (Homebrew-based).
 > A companion repository, [elisp](https://github.com/eduenez/elisp), contains
 > the Emacs configuration shared across all platforms.
+> Machines still on MacPorts (`macbook-gai`, `macbook-utsa`) use only the
+> managed **dotfiles** from this repo — see *Adopting the managed dotfiles on
+> an existing machine* — while the package features remain Homebrew-only.
 
 ---
 
@@ -104,6 +107,58 @@ bash install.sh --list
 
 ---
 
+## Adopting the managed dotfiles on an existing machine
+
+`04-dotfiles` symlinks `dotfiles/zshrc` → `~/.zshrc` and `dotfiles/zprofile` →
+`~/.zprofile`, so template edits reach every machine on the next shell. On a
+machine that already has hand-maintained versions of those files — or a stale
+*copy* of a managed one — migrate instead of overwriting. Check with
+`ls -l ~/.zshrc ~/.zprofile`: anything that is not a symlink into this repo
+needs this procedure.
+
+1. **Diff** the live files against the templates:
+   ```bash
+   diff ~/.zshrc    dotfiles/zshrc
+   diff ~/.zprofile dotfiles/zprofile
+   ```
+2. **Sort every local line into one of three buckets:**
+   - *already covered by the template* (theme, plugins, `~/.local/bin`,
+     `SSH_AUTH_SOCK`, opam, gcloud, rbenv, fzf …) → drop it;
+   - *useful on every machine* → add it to the template, **guarded** so it
+     is a no-op where the tool is absent (`command -v fzf >/dev/null && …`);
+   - *specific to this machine* (package-manager `PATH`, editor wrappers,
+     Emacs-daemon aliases, installer-managed blocks such as juliaup) → move
+     it to `~/.zshrc.local` (interactive: aliases, `EDITOR`) or
+     `~/.zprofile.local` (login: `PATH`). Both are sourced *last* by the
+     managed files and are never committed.
+3. **Back up and link** — `bash install.sh dotfiles` (backs up to
+   `~/.zshrc.bak-YYYY-MM-DD`, then symlinks), or by hand:
+   ```bash
+   mv ~/.zshrc ~/.zshrc.bak-$(date +%F) && ln -s ~/repos/prof-workstation/dotfiles/zshrc ~/.zshrc
+   ```
+4. **Verify in a fresh login shell** before closing the old one:
+   ```bash
+   zsh -lic 'echo $PATH; echo $EDITOR; alias; whence -w fzf-history-widget rbenv'
+   TERM=dumb zsh -lic 'print -r -- "[$PROMPT]"'   # must print exactly [$ ] (Emacs TRAMP)
+   ```
+5. **Commit the template changes** on this machine; on the others,
+   `git pull` — the symlinks pick them up instantly.
+
+**MacPorts machines** (`macbook-gai`, `macbook-utsa`) use the same templates:
+every block is guarded, so Homebrew-only blocks are skipped, and the MacPorts
+`PATH` lives in that machine's `~/.zprofile.local`. Never add MacPorts paths
+to `dotfiles/`.
+
+**Installers rewrite `~/.zshrc`.** juliaup, opam, conda, gcloud, Antigravity
+and friends append blocks to `~/.zshrc`; through the symlink they land in the
+repo file. If `git status` shows an unexpected `dotfiles/zshrc` change, move
+the block to `~/.zshrc.local` and `git checkout dotfiles/zshrc`.
+
+Status: `mac-studio` (2026-06-03; `~/.zshrc` had silently become a copy and
+was re-linked 2026-09-13), `macbook-gai` (2026-09-13). Pending: `macbook-utsa`.
+
+---
+
 ## Repository layout
 
 ```
@@ -181,8 +236,9 @@ action — credentials are never stored in or injected by this repository:
 3. `gcloud auth login`
 4. `M-x copilot-login` inside Emacs
 5. Retrieve API keys (OpenAI, Anthropic, etc.) from LastPass and add to
-   `~/.zshrc.local` as `export` statements (this file is not managed by
-   this repo and will not be overwritten by re-running `dotfiles`)
+   `~/.zshrc.local` as `export` statements (this file — like
+   `~/.zprofile.local` for machine-specific `PATH` — is not managed by this
+   repo and will not be overwritten by re-running `dotfiles`)
 
 ---
 

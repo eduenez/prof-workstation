@@ -1,6 +1,8 @@
-# ~/.zprofile — Login shell configuration.
-# Sets up PATH for Homebrew, rbenv, Google Cloud SDK.
-# Sourced once per login session (before .zshrc).
+# ~/.zprofile — Login shell configuration (sourced once per login, before .zshrc).
+# Managed by prof-workstation; do not edit directly.
+# Every block below is guarded, so this file also works on machines without
+# Homebrew (MacPorts: macbook-gai, macbook-utsa). Machine-specific PATH entries
+# and the like belong in ~/.zprofile.local, sourced at the very end.
 
 # ── Homebrew ──────────────────────────────────────────────────────────
 if [[ -f /opt/homebrew/bin/brew ]]; then
@@ -10,6 +12,8 @@ elif [[ -f /usr/local/bin/brew ]]; then
 fi
 
 # ── rbenv ─────────────────────────────────────────────────────────────
+# A git-installed rbenv lives in ~/.rbenv/bin (not on PATH yet); Homebrew's is.
+[[ -d "$HOME/.rbenv/bin" ]] && export PATH="$HOME/.rbenv/bin:$PATH"
 if command -v rbenv &>/dev/null; then
     eval "$(rbenv init - --no-rehash zsh)"
 fi
@@ -24,5 +28,8 @@ unset _gcloud_prefix
 [[ -r "$HOME/.opam/opam-init/init.zsh" ]] && \
     source "$HOME/.opam/opam-init/init.zsh" > /dev/null 2>&1
 
-# SSH agent (Bitwarden)
+# ── SSH agent (Bitwarden) ─────────────────────────────────────────────
 export SSH_AUTH_SOCK="$HOME/.bitwarden-ssh-agent.sock"
+
+# ── Local overrides ───────────────────────────────────────────────────
+[[ -f "$HOME/.zprofile.local" ]] && source "$HOME/.zprofile.local"

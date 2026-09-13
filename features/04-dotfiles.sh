@@ -15,8 +15,9 @@ _deploy_link() {
         warn "  $dest is linked elsewhere — relinking."
         rm "$dest"
     elif [[ -e "$dest" ]]; then
-        warn "  Backing up $dest → ${dest}.bak"
-        mv "$dest" "${dest}.bak"
+        local bak="${dest}.bak-$(date +%F)"      # dated: never clobber an older .bak
+        warn "  Backing up $dest → $bak"
+        mv "$dest" "$bak"
     fi
     ln -s "$src" "$dest"
     info "  $dest → $src"

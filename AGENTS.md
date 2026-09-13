@@ -46,6 +46,21 @@ machine (MacPorts). The `dotfiles/` are adapted from `~/.zshrc`, `~/.zprofile`,
 `~/.gitconfig`, and `~/.config/karabiner/karabiner.json` on the old machine.
 
 **None of these scripts have been run on the target hardware yet.**
+(Superseded: `04-dotfiles` ran on `mac-studio` on 2026-06-03.)
+
+### 2026-09-13 — TRAMP guard, dotfiles adoption on macbook-gai (Claude Fable 5.1 / Claude Code)
+
+- Root-caused an Emacs TRAMP hang to `mac-studio` (Oh My Zsh under
+  `TERM=dumb`: update prompt `[Y/n] ` false-matches TRAMP's prompt regexp,
+  async git prompt never settles). Added the early `TERM=dumb` guard to
+  `dotfiles/zshrc` (bare `$ ` prompt, `return` before Oh My Zsh loads).
+- Found `mac-studio`'s `~/.zshrc` to be a stale copy; merged its `fzf --zsh`
+  line into the template (guarded, generic) and re-linked it.
+- Migrated `macbook-gai` (MacPorts) to the symlinked `zshrc`/`zprofile`:
+  machine-specific lines → new `~/.zshrc.local` / `~/.zprofile.local`;
+  `dotfiles/zprofile` gained the `~/.zprofile.local` hook and an
+  `~/.rbenv/bin` PATH line (git-installed rbenv). `_deploy_link` backups
+  are now dated. Procedure documented in README for `macbook-utsa`.
 
 ---
 
@@ -77,6 +92,14 @@ gives a clean summary at the end.
 MacPorts is on the old machine only. The new machine uses Homebrew exclusively.
 Do not add MacPorts references to this repo.
 
+**Exception — the managed dotfiles are shared with MacPorts machines.** Since
+2026-09-13 `macbook-gai` (MacPorts, no Homebrew) also symlinks `dotfiles/zshrc`
+and `dotfiles/zprofile`; `macbook-utsa` will follow. Therefore every block in
+those two files must be *guarded* to be a no-op when its tool is absent
+(`[[ -f /opt/homebrew/bin/brew ]] && …`, `command -v fzf >/dev/null && …`).
+MacPorts `PATH` and other MacPorts-only lines live in that machine's
+`~/.zprofile.local` / `~/.zshrc.local` — still never in `dotfiles/`.
+
 ### uv, not conda / pyenv / pip-user
 `uv` manages all Python versions, virtualenvs, and global tools. It is
 pip-compatible (`pip-requirements.txt` works unchanged with `uv pip install`).
@@ -102,10 +125,22 @@ documented in `lib/common.sh`.
 **copy** — Karabiner-Elements modifies it at runtime when settings are changed
 via the UI, which would otherwise dirty the working tree.
 
-### `~/.zshrc.local` for machine-specific overrides
-The managed `zshrc` sources `~/.zshrc.local` at the bottom if it exists. This
-file is intentionally not in this repo and must never be added. It is where
-API keys, machine-specific `PATH` additions, and per-machine aliases live.
+**Trust, but `ls -l`.** On 2026-09-13 `mac-studio`'s `~/.zshrc` turned out to
+be a plain *copy* (dated 1 Sep) carrying an unmerged local edit
+(`eval "$(fzf --zsh)"`), so template changes were not reaching it; the edit
+was folded into the template and the file re-linked. `_deploy_link` now backs
+up to `~/.zshrc.bak-YYYY-MM-DD` (dated — a fixed `.bak` clobbered older
+backups). Installers (juliaup, opam, conda, gcloud, Antigravity) append to
+`~/.zshrc`, i.e. through the symlink into the repo: move such blocks to
+`~/.zshrc.local` and `git checkout dotfiles/zshrc`. Migration procedure:
+README → *Adopting the managed dotfiles on an existing machine*.
+
+### `~/.zshrc.local` and `~/.zprofile.local` for machine-specific overrides
+The managed `zshrc` sources `~/.zshrc.local` and the managed `zprofile`
+sources `~/.zprofile.local`, each at its very end, if the file exists. Both
+are intentionally not in this repo and must never be added. `~/.zshrc.local`
+holds interactive things (aliases, `EDITOR`, API keys, installer blocks);
+`~/.zprofile.local` holds login-time `PATH` (e.g. MacPorts, `pip --user`).
 
 ### Secrets by checklist only
 No credential injection, no PM CLI. `13-secrets.sh` only prints a checklist.
@@ -131,7 +166,7 @@ citizen but receives less testing.
 | `01-pkgmgr` | ✓ | — |
 | `02-brew-bundle` | ✓ | — |
 | `03-apt-pkgs` | ✓ | — |
-| `04-dotfiles` | ✓ | — |
+| `04-dotfiles` | ✓ | ✓ mac-studio 2026-06-03 · macbook-gai 2026-09-13 |
 | `05-emacs` | ✓ | — |
 | `06-vscode` | ✓ | — |
 | `07-python` | ✓ | — |
