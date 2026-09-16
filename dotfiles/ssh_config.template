@@ -1,10 +1,25 @@
 # ~/.ssh/config — SSH client configuration template.
 # Deployed by features/04-dotfiles.sh; fill in host entries manually.
+#
+# Keys live in the Bitwarden SSH agent, not local key files (see
+# ~/.zprofile's `export SSH_AUTH_SOCK=...` and elisp/MACOS.md's
+# "Environment: SSH_AUTH_SOCK (Bitwarden SSH agent)" section — that doc
+# covers the launchd-daemon case, where a process never sources
+# ~/.zprofile and so never inherits SSH_AUTH_SOCK from the shell).
+# IdentityAgent pins the same socket at the ssh-client-config level, so
+# ssh always asks Bitwarden for a key regardless of what invoked it.
+#
+# Do NOT add IdentityFile/AddKeysToAgent/UseKeychain here: they're for a
+# local-key-file workflow, and this one isn't (agent-offered keys are
+# tried before file-based ones anyway, so a stray IdentityFile wouldn't
+# even pre-empt Bitwarden — verified with `ssh -v`, see AGENTS.md). It's
+# still the wrong default: a local key silently falls back in for any
+# host that happens to still authorize it, and unlike IdentityAgent it
+# gives no guarantee of reaching Bitwarden from a process that never
+# inherited SSH_AUTH_SOCK from the shell.
 
 Host *
-    AddKeysToAgent      yes
-    UseKeychain         yes        # macOS Keychain integration; remove on Linux
-    IdentityFile        ~/.ssh/id_ed25519
+    IdentityAgent       ~/.bitwarden-ssh-agent.sock
     ServerAliveInterval 60
     ServerAliveCountMax 3
 
@@ -13,7 +28,6 @@ Host *
 # Host myserver
 #     HostName        example.com
 #     User            myuser
-#     IdentityFile    ~/.ssh/id_ed25519
 #     Port            22
 #
 # Host jump

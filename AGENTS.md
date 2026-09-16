@@ -77,6 +77,28 @@ machine (MacPorts). The `dotfiles/` are adapted from `~/.zshrc`, `~/.zprofile`,
 - Verified: `rm toolkit.{dvi,pdf,...}; latexmk toolkit.tex` (no flags, in
   `~/repos/teaching/ProblemSolving/ProblemSetsPSC/Fall2026`) now produces
   `toolkit.pdf` directly, no `.dvi` at any point.
+- Follow-up: that deployed `ssh_config.template` predates the Bitwarden SSH
+  agent migration and still assumed a local-key workflow (`IdentityFile
+  ~/.ssh/id_ed25519`, `AddKeysToAgent`, `UseKeychain`). Checked with
+  `ssh -v -T git@github.com` under both the old and a candidate new config:
+  agent-offered keys are tried *before* file-based ones either way (an
+  explicit `IdentityFile` does **not** pre-empt the agent — initial worry,
+  disproved by testing), so it was not silently bypassing Bitwarden. It was
+  still the wrong default going forward, though: it offered a stale local
+  key as a fallback on every host, and gave no guarantee of using Bitwarden
+  for a process that never inherited `SSH_AUTH_SOCK` from `~/.zprofile` —
+  exactly the failure mode `elisp/MACOS.md`'s "Environment: SSH_AUTH_SOCK"
+  section documents for the launchd-started Emacs daemon. Replaced those
+  three lines with `IdentityAgent ~/.bitwarden-ssh-agent.sock`, which pins
+  the agent at the ssh-client-config level regardless of caller environment.
+  Re-verified with `ssh -v -T git@github.com`: authenticates via the
+  Bitwarden-agent key (`GibranSSHkey`), local `id_ed25519` never attempted.
+- Found `~/.ssh/config.bad` and `~/.ssh/config~` on `mac-studio` (dated
+  2026-08-24) — remnants of an earlier attempt at this same file, same
+  generic template plus one manually-added `Host msuk` entry. Left in
+  place, untouched; not migrated into the template since host aliases are
+  meant to be filled in manually per machine, but worth restoring by hand
+  if `msuk` is still a host in use.
 
 ---
 
