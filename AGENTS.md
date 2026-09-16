@@ -62,6 +62,22 @@ machine (MacPorts). The `dotfiles/` are adapted from `~/.zshrc`, `~/.zprofile`,
   `~/.rbenv/bin` PATH line (git-installed rbenv). `_deploy_link` backups
   are now dated. Procedure documented in README for `macbook-utsa`.
 
+### 2026-09-16 — `~/.latexmkrc` deployed, forcing PDF output (Claude Sonnet 5 / Claude Code)
+
+- latexmk's own default (`pdf_mode = 0`) builds DVI unless `-pdf` is passed
+  explicitly, which doesn't match a typed-from-muscle-memory `latexmk`.
+  Added `dotfiles/latexmkrc` (`$pdf_mode = 1;`) and a `_deploy_latexmkrc`
+  step in `features/04-dotfiles.sh`, symlinked to `~/.latexmkrc` the same
+  way as `tmux.conf`.
+- Applied on `mac-studio` by running `bash install.sh dotfiles`, which also
+  deployed the (previously undeployed) `~/.ssh/config` template as a side
+  effect — that feature runs every dotfile in one pass. Harmless (template
+  only, no real host entries) but worth knowing if only one dotfile is
+  meant to move: run the specific `_deploy_*` step, not the whole feature.
+- Verified: `rm toolkit.{dvi,pdf,...}; latexmk toolkit.tex` (no flags, in
+  `~/repos/teaching/ProblemSolving/ProblemSetsPSC/Fall2026`) now produces
+  `toolkit.pdf` directly, no `.dvi` at any point.
+
 ---
 
 ## Architecture

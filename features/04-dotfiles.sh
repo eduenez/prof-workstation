@@ -68,6 +68,10 @@ _deploy_tmux() {
     _deploy_link "$DOTFILES/tmux.conf" "$HOME/.tmux.conf"
 }
 
+_deploy_latexmkrc() {
+    _deploy_link "$DOTFILES/latexmkrc" "$HOME/.latexmkrc"
+}
+
 _deploy_ssh_config() {
     local dest="$HOME/.ssh/config"
     if [[ -f "$dest" ]]; then
@@ -96,6 +100,7 @@ run_step "Oh My Zsh"          _install_oh_my_zsh
 run_step "zshrc + zprofile"   _deploy_shell_config
 run_step "gitconfig"          _deploy_gitconfig
 run_step "tmux.conf"          _deploy_tmux
+run_step "latexmkrc"          _deploy_latexmkrc
 run_step "SSH config template" _deploy_ssh_config
 run_step "Karabiner config"   _deploy_karabiner
 

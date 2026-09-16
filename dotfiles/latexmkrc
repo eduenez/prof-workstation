@@ -1,0 +1,8 @@
+# ~/.latexmkrc — always build PDF, never DVI.
+# Managed by prof-workstation; do not edit directly.
+#
+# latexmk's own default (pdf_mode = 0) runs plain `latex` to DVI, which is
+# almost never what a modern (pdf)LaTeX workflow wants. Setting pdf_mode = 1
+# makes a bare `latexmk` behave like `latexmk -pdf` — run pdflatex straight
+# to PDF — without having to remember the flag.
+$pdf_mode = 1;
