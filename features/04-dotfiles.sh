@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 04-dotfiles — Oh My Zsh, zshrc, zprofile, gitconfig, tmux, SSH, Karabiner.
+# 04-dotfiles — Oh My Zsh, zshrc, zprofile, gitconfig, tmux, SSH, Karabiner, MC.
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/lib/common.sh"
 
 DOTFILES="$REPO_DIR/dotfiles"
@@ -96,6 +96,49 @@ _deploy_karabiner() {
     info "Deployed karabiner.json."
 }
 
+MC_SKIN="modarin256-defbg-thin"
+MC_SKIN_ROOT="modarin256root-defbg-thin"
+
+# Idempotently pin `skin=$2` inside the mc ini at path $1, without touching
+# any other setting — mc's ini is live, per-machine state that mc rewrites
+# on every run (auto_save_setup=true), so it is never symlinked wholesale.
+_mc_set_skin() {
+    local mc_ini="$1" skin="$2"
+    mkdir -p "$(dirname "$mc_ini")"
+    if [[ ! -f "$mc_ini" ]]; then
+        printf '[Midnight-Commander]\nskin=%s\n' "$skin" > "$mc_ini"
+        info "  Created $mc_ini with skin=$skin"
+    elif grep -q "^skin=$skin\$" "$mc_ini"; then
+        info "  $mc_ini already set to skin=$skin"
+    elif grep -q '^skin=' "$mc_ini"; then
+        awk -v s="$skin" '{ if ($0 ~ /^skin=/) print "skin=" s; else print }' "$mc_ini" > "$mc_ini.tmp" && mv "$mc_ini.tmp" "$mc_ini"
+        info "  Updated skin= in $mc_ini"
+    elif grep -q '^\[Midnight-Commander\]$' "$mc_ini"; then
+        awk -v s="$skin" '{ print; if ($0 == "[Midnight-Commander]" && !done) { print "skin=" s; done=1 } }' "$mc_ini" > "$mc_ini.tmp" && mv "$mc_ini.tmp" "$mc_ini"
+        info "  Added skin=$skin to $mc_ini"
+    else
+        { printf '[Midnight-Commander]\nskin=%s\n\n' "$skin"; cat "$mc_ini"; } > "$mc_ini.tmp" && mv "$mc_ini.tmp" "$mc_ini"
+        info "  Added skin=$skin to $mc_ini"
+    fi
+}
+
+_deploy_mc() {
+    local dest_dir="$HOME/.local/share/mc/skins"
+    mkdir -p "$dest_dir"
+    _deploy_link "$DOTFILES/mc/skins/$MC_SKIN.ini"      "$dest_dir/$MC_SKIN.ini"
+    _deploy_link "$DOTFILES/mc/skins/$MC_SKIN_ROOT.ini" "$dest_dir/$MC_SKIN_ROOT.ini"
+
+    _mc_set_skin "$HOME/.config/mc/ini" "$MC_SKIN"
+
+    # `sudo mc` runs as root, with its own separate config under root's
+    # HOME — this repo's install never runs as root, so that copy has to be
+    # deployed by hand, once, with:
+    #   sudo mkdir -p /var/root/.local/share/mc/skins /var/root/.config/mc
+    #   sudo cp "$DOTFILES/mc/skins/$MC_SKIN_ROOT.ini" /var/root/.local/share/mc/skins/
+    #   sudo sh -c "printf '[Midnight-Commander]\nskin=$MC_SKIN_ROOT\n' > /var/root/.config/mc/ini"
+    # (use /root instead of /var/root on Linux.)
+}
+
 run_step "Oh My Zsh"          _install_oh_my_zsh
 run_step "zshrc + zprofile"   _deploy_shell_config
 run_step "gitconfig"          _deploy_gitconfig
@@ -103,5 +146,6 @@ run_step "tmux.conf"          _deploy_tmux
 run_step "latexmkrc"          _deploy_latexmkrc
 run_step "SSH config template" _deploy_ssh_config
 run_step "Karabiner config"   _deploy_karabiner
+run_step "MC skin"            _deploy_mc
 
 summary_report
