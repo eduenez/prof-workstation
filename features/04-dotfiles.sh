@@ -99,26 +99,26 @@ _deploy_karabiner() {
 MC_SKIN="modarin256-defbg-thin"
 MC_SKIN_ROOT="modarin256root-defbg-thin"
 
-# Idempotently pin `skin=$2` inside the mc ini at path $1, without touching
-# any other setting — mc's ini is live, per-machine state that mc rewrites
-# on every run (auto_save_setup=true), so it is never symlinked wholesale.
-_mc_set_skin() {
-    local mc_ini="$1" skin="$2"
+# Idempotently pin `$2=$3` inside the mc ini at path $1, without touching
+# any other setting — mc's ini is otherwise live, per-machine state that mc
+# rewrites on every run, so it is never symlinked wholesale.
+_mc_set_key() {
+    local mc_ini="$1" key="$2" value="$3"
     mkdir -p "$(dirname "$mc_ini")"
     if [[ ! -f "$mc_ini" ]]; then
-        printf '[Midnight-Commander]\nskin=%s\n' "$skin" > "$mc_ini"
-        info "  Created $mc_ini with skin=$skin"
-    elif grep -q "^skin=$skin\$" "$mc_ini"; then
-        info "  $mc_ini already set to skin=$skin"
-    elif grep -q '^skin=' "$mc_ini"; then
-        awk -v s="$skin" '{ if ($0 ~ /^skin=/) print "skin=" s; else print }' "$mc_ini" > "$mc_ini.tmp" && mv "$mc_ini.tmp" "$mc_ini"
-        info "  Updated skin= in $mc_ini"
+        printf '[Midnight-Commander]\n%s=%s\n' "$key" "$value" > "$mc_ini"
+        info "  Created $mc_ini with $key=$value"
+    elif grep -q "^$key=$value\$" "$mc_ini"; then
+        info "  $mc_ini already set to $key=$value"
+    elif grep -q "^$key=" "$mc_ini"; then
+        awk -v k="$key" -v v="$value" '{ if ($0 ~ "^" k "=") print k "=" v; else print }' "$mc_ini" > "$mc_ini.tmp" && mv "$mc_ini.tmp" "$mc_ini"
+        info "  Updated $key= in $mc_ini"
     elif grep -q '^\[Midnight-Commander\]$' "$mc_ini"; then
-        awk -v s="$skin" '{ print; if ($0 == "[Midnight-Commander]" && !done) { print "skin=" s; done=1 } }' "$mc_ini" > "$mc_ini.tmp" && mv "$mc_ini.tmp" "$mc_ini"
-        info "  Added skin=$skin to $mc_ini"
+        awk -v k="$key" -v v="$value" '{ print; if ($0 == "[Midnight-Commander]" && !done) { print k "=" v; done=1 } }' "$mc_ini" > "$mc_ini.tmp" && mv "$mc_ini.tmp" "$mc_ini"
+        info "  Added $key=$value to $mc_ini"
     else
-        { printf '[Midnight-Commander]\nskin=%s\n\n' "$skin"; cat "$mc_ini"; } > "$mc_ini.tmp" && mv "$mc_ini.tmp" "$mc_ini"
-        info "  Added skin=$skin to $mc_ini"
+        { printf '[Midnight-Commander]\n%s=%s\n\n' "$key" "$value"; cat "$mc_ini"; } > "$mc_ini.tmp" && mv "$mc_ini.tmp" "$mc_ini"
+        info "  Added $key=$value to $mc_ini"
     fi
 }
 
@@ -128,14 +128,22 @@ _deploy_mc() {
     _deploy_link "$DOTFILES/mc/skins/$MC_SKIN.ini"      "$dest_dir/$MC_SKIN.ini"
     _deploy_link "$DOTFILES/mc/skins/$MC_SKIN_ROOT.ini" "$dest_dir/$MC_SKIN_ROOT.ini"
 
-    _mc_set_skin "$HOME/.config/mc/ini" "$MC_SKIN"
+    local mc_ini="$HOME/.config/mc/ini"
+    _mc_set_key "$mc_ini" skin "$MC_SKIN"
+    # auto_save_setup persists mc's *entire* live session state (including
+    # the active skin) back into this ini on every exit — so any in-session
+    # skin change (even just previewing one from Options > Appearance)
+    # permanently overwrites the line above. Pin it off so skin= actually
+    # stays put; deliberate option changes still persist via Options >
+    # Save Setup (F9) when you want them to.
+    _mc_set_key "$mc_ini" auto_save_setup false
 
     # `sudo mc` runs as root, with its own separate config under root's
     # HOME — this repo's install never runs as root, so that copy has to be
     # deployed by hand, once, with:
     #   sudo mkdir -p /var/root/.local/share/mc/skins /var/root/.config/mc
     #   sudo cp "$DOTFILES/mc/skins/$MC_SKIN_ROOT.ini" /var/root/.local/share/mc/skins/
-    #   sudo sh -c "printf '[Midnight-Commander]\nskin=$MC_SKIN_ROOT\n' > /var/root/.config/mc/ini"
+    #   sudo sh -c "printf '[Midnight-Commander]\nskin=$MC_SKIN_ROOT\nauto_save_setup=false\n' > /var/root/.config/mc/ini"
     # (use /root instead of /var/root on Linux.)
 }
 
