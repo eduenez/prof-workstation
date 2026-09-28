@@ -11,6 +11,18 @@ elif [[ -f /usr/local/bin/brew ]]; then
     eval "$(/usr/local/bin/brew shellenv)"       # Intel
 fi
 
+# ── Ghostscript for dvisvgm ───────────────────────────────────────────
+# TeX Live's dvisvgm loads libgs at run time (needed for TikZ's PostScript
+# specials) but doesn't search Homebrew's or MacPorts' lib directory; check
+# with `dvisvgm --version=yes`.  Debian/Ubuntu's dvisvgm links libgs directly.
+if [[ -z "$LIBGS" ]]; then
+    for _libgs in "${HOMEBREW_PREFIX:+$HOMEBREW_PREFIX/lib/libgs.dylib}" \
+                  /opt/local/lib/libgs.dylib; do
+        [[ -n "$_libgs" && -f "$_libgs" ]] && { export LIBGS="$_libgs"; break; }
+    done
+    unset _libgs
+fi
+
 # ── rbenv ─────────────────────────────────────────────────────────────
 # A git-installed rbenv lives in ~/.rbenv/bin (not on PATH yet); Homebrew's is.
 [[ -d "$HOME/.rbenv/bin" ]] && export PATH="$HOME/.rbenv/bin:$PATH"

@@ -100,6 +100,19 @@ machine (MacPorts). The `dotfiles/` are adapted from `~/.zshrc`, `~/.zprofile`,
   meant to be filled in manually per machine, but worth restoring by hand
   if `msuk` is still a host in use.
 
+### 2026-09-28 — `LIBGS` for dvisvgm (Claude Opus 5.5 / Claude Code)
+
+- On macOS, TeX Live's dvisvgm loads Ghostscript's library at run time (TikZ
+  needs it) but doesn't search Homebrew's or MacPorts' lib directory, so
+  `dvisvgm --version=yes` listed no Ghostscript on `mac-studio`. Added a guarded
+  block to `dotfiles/zprofile` that sets `LIBGS` from `$HOMEBREW_PREFIX` or
+  `/opt/local` when unset. Debian/Ubuntu's dvisvgm links libgs directly.
+- Chose `zprofile` over a new `zshenv`. Only dvisvgm reads the variable, and in
+  a shell it runs from login sessions. The Emacs daemon, started by launchd,
+  gets it from `elisp`'s `emacs-config.org`. `mac-studio`'s `~/.zshenv` is an
+  unmanaged, machine-specific file (Ollama), which a managed `zshenv` would
+  have had to absorb.
+
 ---
 
 ## Architecture
