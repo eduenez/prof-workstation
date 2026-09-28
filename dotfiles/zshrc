@@ -24,6 +24,10 @@ plugins=(git)
 
 source "$ZSH/oh-my-zsh.sh"
 
+export INFOPATH="/Applications/SageMath-10-9.app/Contents/Frameworks/Sage.framework/Versions/10.9/local/share/info:${INFOPATH:-}"
+
+export MANPATH="/Applications/SageMath-10-9.app/Contents/Frameworks/Sage.framework/Versions/10.9/local/share/man:${MANPATH:-}"
+
 # ── iTerm2 ────────────────────────────────────────────────────────────
 export ITERM_ENABLE_SHELL_INTEGRATION_WITH_TMUX=YES
 
