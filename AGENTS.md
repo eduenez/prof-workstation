@@ -113,6 +113,16 @@ machine (MacPorts). The `dotfiles/` are adapted from `~/.zshrc`, `~/.zprofile`,
   unmanaged, machine-specific file (Ollama), which a managed `zshenv` would
   have had to absorb.
 
+### 2026-09-29 — documented Shift+Enter/iTerm2 keyboard-protocol gotcha (Claude Sonnet 5 / Claude Code)
+
+- No code change. `dotfiles/tmux.conf`'s `extended-keys`/`terminal-features`
+  lines were already correct (tmux-side forwarding of Shift+Enter etc.), but
+  the client-side half lives in iTerm2's GUI and isn't scriptable, so it was
+  undocumented and easy to forget on a fresh machine. Added a "Known issues
+  and TODOs" entry with the diagnosis and the fix (iTerm2's "Report modifiers
+  using CSI u," or trusting the Kitty-keyboard-protocol auto-negotiation
+  tmux/iTerm2 already support).
+
 ---
 
 ## Architecture
@@ -278,6 +288,28 @@ Update the "Tested" column as features are exercised on the Mac Studio.
   homebrew-core before relying on it. `cask "ipe"` — the IPE drawing editor may not
   be in homebrew/cask under that name. If either fails, `brew bundle` will report
   the error and continue past it.
+
+- **Shift+Enter (and other shifted keys) need iTerm2 configured, not just tmux.**
+  `dotfiles/tmux.conf` sets `extended-keys on` and
+  `terminal-features 'xterm*:extkeys'`, the tmux-side half of forwarding
+  modified keys (Shift+Enter, Shift+Tab, ...) to programs like `claude`
+  instead of collapsing them to the bare key. That config has to be in effect
+  on whichever host actually runs the tmux **server** — the remote box, if
+  you `ssh` then `tmux attach` — not just present in this repo's local
+  checkout. The other half is client-side, in iTerm2, and can't be scripted:
+  - Try it with no iTerm2 changes first. Modern iTerm2 (≥3.5) and tmux
+    (≥3.2, 3.5+ better) can auto-negotiate the Kitty keyboard protocol —
+    tmux queries the outer terminal for support at attach — so a
+    well-behaved inner program may already get correct modifier reporting
+    for free.
+  - If Shift+Enter still collapses to plain Enter, the fallback is iTerm2 →
+    Settings → Profiles → [profile] → Keys → General → **"Report modifiers
+    using CSI u."** iTerm2's own docs call this legacy and point to the
+    Kitty protocol instead, but that's guidance for apps talking directly to
+    a terminal. tmux sits in between here and explicitly still forwards this
+    encoding (`extended-keys-format` supports `xterm`/`csi-u`/`kitty`) — it's
+    a supported input path, not a hack that fights tmux's design, just the
+    older of the two.
 
 ---
 
