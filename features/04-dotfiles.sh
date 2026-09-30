@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 04-dotfiles — Oh My Zsh, zshrc, zprofile, gitconfig, tmux, Ghostty, SSH, Karabiner, MC.
+# 04-dotfiles — Oh My Zsh, zshrc, zprofile, gitconfig, tmux, Ghostty, SSH (+ Bitwarden agent on Linux), Karabiner, MC.
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/lib/common.sh"
 
 DOTFILES="$REPO_DIR/dotfiles"
@@ -90,6 +90,51 @@ _deploy_ssh_config() {
     info "Deployed ~/.ssh/config template — fill in host entries manually."
 }
 
+# zprofile, ssh_config.template and elisp's emacs-config.org all name the
+# macOS socket path ~/.bitwarden-ssh-agent.sock.  The Linux Bitwarden snap
+# puts its socket under ~/snap/bitwarden/<rev>/ instead; link the macOS path
+# to the `current` revision so every consumer works unchanged and survives
+# snap refreshes.  The link dangles while Bitwarden is not running — fine,
+# the socket itself only exists then too.
+_deploy_bitwarden_sock() {
+    [[ "$OS" != "Linux" ]] && return 0
+    local snap_sock="$HOME/snap/bitwarden/current/.bitwarden-ssh-agent.sock"
+    local dest="$HOME/.bitwarden-ssh-agent.sock"
+    if [[ ! -d "$HOME/snap/bitwarden" ]]; then
+        info "Bitwarden snap not installed — skipping agent socket link."
+        return 0
+    fi
+    if [[ -L "$dest" && "$(readlink "$dest")" == "$snap_sock" ]]; then
+        info "  $dest already linked."
+        return 0
+    fi
+    if [[ -e "$dest" || -L "$dest" ]]; then
+        warn "  $dest exists and is not the snap link — leaving it alone."
+        return 1
+    fi
+    ln -s "$snap_sock" "$dest"
+    info "  $dest → $snap_sock"
+}
+
+# gcr-ssh-agent.socket and ssh-agent.socket each `systemctl --user
+# set-environment SSH_AUTH_SOCK=...` when started (gcr last, so it wins),
+# clobbering the Bitwarden socket for every unit started afterwards —
+# including emacs.service.  Masking only gcr just hands the job to
+# ssh-agent.socket, so mask both.
+_mask_competing_ssh_agents() {
+    [[ "$OS" != "Linux" ]] && return 0
+    $IS_WSL && return 0
+    command_exists systemctl || return 0
+    local unit
+    for unit in gcr-ssh-agent.socket ssh-agent.socket; do
+        if [[ "$(systemctl --user is-enabled "$unit" 2>/dev/null)" == "masked" ]]; then
+            info "  $unit already masked."
+        elif systemctl --user cat "$unit" &>/dev/null; then
+            systemctl --user mask --now "$unit" && info "  Masked $unit"
+        fi
+    done
+}
+
 _deploy_karabiner() {
     [[ "$OS" != "Darwin" ]] && return 0
     local dest="$HOME/.config/karabiner/karabiner.json"
@@ -160,6 +205,8 @@ run_step "tmux.conf"          _deploy_tmux
 run_step "Ghostty config"     _deploy_ghostty
 run_step "latexmkrc"          _deploy_latexmkrc
 run_step "SSH config template" _deploy_ssh_config
+run_step "Bitwarden agent socket link" _deploy_bitwarden_sock
+run_step "Mask competing SSH agents" _mask_competing_ssh_agents
 run_step "Karabiner config"   _deploy_karabiner
 run_step "MC skin"            _deploy_mc
 
