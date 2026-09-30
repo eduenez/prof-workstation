@@ -1,0 +1,13 @@
+font-family = ""
+font-family-bold = ""
+font-family-italic = ""
+font-family-bold-italic = ""
+font-family = "BlexMono Nerd Font"
+font-family-bold = "BlexMono Nerd Font Bold"
+font-family-italic = "BlexMono Nerd Font Italic"
+font-family-bold-italic = "BlexMono Nerd Font Bold Italic"
+
+# Install xterm-ghostty terminfo on SSH hosts (tic, cached per host), else
+# fall back to TERM=xterm-256color; fixes "missing or unsuitable terminal:
+# xterm-ghostty" from tmux on the remote. Unlisted features keep defaults.
+shell-integration-features = ssh-env,ssh-terminfo

@@ -140,6 +140,15 @@ machine (MacPorts). The `dotfiles/` are adapted from `~/.zshrc`, `~/.zprofile`,
   Needs `flex` (added to `lists/apt-packages.txt`; Xcode CLT ships it).
   After installing, re-index affected files once with `recollindex -i`
   (stop `recollindex.service` first) — Recoll won't retry unchanged files.
+- Added `clang` to `lists/apt-packages.txt` (used to test the detex PR).
+- New `dotfiles/ghostty/config.ghostty` (adopted from ChatEDG, deployed by
+  `04-dotfiles`) with `shell-integration-features = ssh-env,ssh-terminfo`:
+  `tmux attach` on `mac-studio` over SSH from Ghostty failed with "missing or
+  unsuitable terminal: xterm-ghostty". Ghostty's `ssh` wrapper now installs
+  its terminfo on the remote via `tic` (cached per host; `ghostty +ssh-cache`
+  manages it), falling back to `TERM=xterm-256color`. Only applies to `ssh`
+  typed in a Ghostty shell with shell integration (not TRAMP, mosh, or ssh
+  from inside a local tmux, which already sets its own TERM).
 - `dotfiles/zprofile` now adds `~/.elan/bin`; `14-lean.sh` passes
   `--no-modify-path` so elan's installer stops appending to the symlinked
   `~/.zprofile`.

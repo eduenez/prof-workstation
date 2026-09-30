@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 04-dotfiles — Oh My Zsh, zshrc, zprofile, gitconfig, tmux, SSH, Karabiner, MC.
+# 04-dotfiles — Oh My Zsh, zshrc, zprofile, gitconfig, tmux, Ghostty, SSH, Karabiner, MC.
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/lib/common.sh"
 
 DOTFILES="$REPO_DIR/dotfiles"
@@ -66,6 +66,12 @@ _deploy_gitconfig() {
 
 _deploy_tmux() {
     _deploy_link "$DOTFILES/tmux.conf" "$HOME/.tmux.conf"
+}
+
+_deploy_ghostty() {
+    # Ghostty reads ~/.config/ghostty/config.ghostty on macOS as well as Linux.
+    mkdir -p "$HOME/.config/ghostty"
+    _deploy_link "$DOTFILES/ghostty/config.ghostty" "$HOME/.config/ghostty/config.ghostty"
 }
 
 _deploy_latexmkrc() {
@@ -151,6 +157,7 @@ run_step "Oh My Zsh"          _install_oh_my_zsh
 run_step "zshrc + zprofile"   _deploy_shell_config
 run_step "gitconfig"          _deploy_gitconfig
 run_step "tmux.conf"          _deploy_tmux
+run_step "Ghostty config"     _deploy_ghostty
 run_step "latexmkrc"          _deploy_latexmkrc
 run_step "SSH config template" _deploy_ssh_config
 run_step "Karabiner config"   _deploy_karabiner

@@ -35,7 +35,7 @@ tools, fonts, and GUI applications.
 | `pkgmgr` | Homebrew (macOS) / apt update (Linux) |
 | `brew-bundle` | All Homebrew packages, casks, and fonts via `Brewfile` |
 | `apt-pkgs` | Equivalent apt packages (Linux / WSL) |
-| `dotfiles` | Shell config, Git, tmux, SSH skeleton, Karabiner |
+| `dotfiles` | Shell config, Git, tmux, Ghostty, SSH skeleton, Karabiner |
 | `emacs` | Emacs.app + `elisp` repo clone + elpaca bootstrap |
 | `vscode` | VS Code + extension list |
 | `python` | `uv` — Python versions, virtualenvs, and packages |
@@ -190,6 +190,7 @@ prof-workstation/
 │   ├── zprofile
 │   ├── gitconfig.template  # Fill in NAME and EMAIL at install time
 │   ├── tmux.conf
+│   ├── ghostty/config.ghostty  # incl. SSH terminfo auto-install
 │   ├── ssh_config.template
 │   └── karabiner/
 ├── lists/
