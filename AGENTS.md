@@ -123,6 +123,27 @@ machine (MacPorts). The `dotfiles/` are adapted from `~/.zshrc`, `~/.zprofile`,
   using CSI u," or trusting the Kitty-keyboard-protocol auto-negotiation
   tmux/iTerm2 already support).
 
+### 2026-09-29 — patched detex for Recoll; elan PATH (Claude Opus 5.5 / Claude Code)
+
+- After `texlive-full` was installed on ChatEDG (Ubuntu), `recollindex`
+  (which indexes `/usr/share/doc/texlive-doc`) triggered repeated detex
+  SIGSEGV coredumps. Root cause: OpenDetex 2.8.11 (TeX Live's `detex`)
+  dereferences NULL on any `\includeonly` when run with `-n`, which Recoll's
+  `rcltex` filter always passes; affected files index with no text. Also hits
+  personal `.tex` files, so skipping TeX Live docs is not a fix.
+- Fixed upstream in https://github.com/pkubowicz/opendetex/pull/91 (pending).
+  Until it ships in TeX Live, new `features/15-detex.sh` builds OpenDetex at a
+  pinned commit with `patches/opendetex-includeonly.patch` into
+  `~/.local/bin` (first on `recollhelperpath` and on PATH via `zshrc`). It
+  probes the detex on PATH first and skips when it doesn't crash, so it goes
+  inert once a fixed TeX Live lands; then delete the feature and patch.
+  Needs `flex` (added to `lists/apt-packages.txt`; Xcode CLT ships it).
+  After installing, re-index affected files once with `recollindex -i`
+  (stop `recollindex.service` first) — Recoll won't retry unchanged files.
+- `dotfiles/zprofile` now adds `~/.elan/bin`; `14-lean.sh` passes
+  `--no-modify-path` so elan's installer stops appending to the symlinked
+  `~/.zprofile`.
+
 ---
 
 ## Architecture
@@ -238,6 +259,7 @@ citizen but receives less testing.
 | `12-macos-prefs` | ✓ | — |
 | `13-secrets` | ✓ | — |
 | `14-lean` | ✓ | — |
+| `15-detex` | ✓ | ChatEDG (Ubuntu) |
 
 Update the "Tested" column as features are exercised on the Mac Studio.
 

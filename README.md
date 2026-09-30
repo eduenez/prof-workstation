@@ -46,6 +46,7 @@ tools, fonts, and GUI applications.
 | `macos-prefs` | Dock, Finder, keyboard settings, and dev-friendly defaults |
 | `secrets` | Printed checklist: SSH keys, auth tokens, API keys |
 | `lean` | Lean 4 formal verification environment via `elan` |
+| `detex` | Patched `detex` in `~/.local/bin` (TeX Live's crashes on `\includeonly -n`, breaking Recoll) |
 
 **Homebrew Brewfile covers:**
 core Unix tools · Git · TeX Live (via `mactex-no-gui`) · pandoc · gnuplot ·
@@ -182,7 +183,8 @@ prof-workstation/
 │   ├── 11-ai-tools.sh
 │   ├── 12-macos-prefs.sh   # macOS only
 │   ├── 13-secrets.sh
-│   └── 14-lean.sh
+│   ├── 14-lean.sh
+│   └── 15-detex.sh     # skips itself once TeX Live's detex is fixed
 ├── dotfiles/
 │   ├── zshrc
 │   ├── zprofile
@@ -195,6 +197,8 @@ prof-workstation/
 │   ├── vscode-extensions.txt
 │   ├── pip-requirements.txt
 │   └── r-packages.R
+├── patches/
+│   └── opendetex-includeonly.patch
 └── README.md
 ```
 
