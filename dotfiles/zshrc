@@ -43,9 +43,13 @@ fi
 export PATH="$HOME/.local/bin:$PATH"
 
 # ── Aliases ───────────────────────────────────────────────────────────
-alias ls='gls --color=auto'
-alias ll='gls -lh --color=auto'
-alias la='gls -lAh --color=auto'
+# GNU ls: `gls` from Homebrew coreutils on macOS; plain `ls` is already
+# GNU on Linux.
+if (( $+commands[gls] )); then _gnu_ls=gls; else _gnu_ls=ls; fi
+alias ls="$_gnu_ls --color=auto"
+alias ll="$_gnu_ls -lh --color=auto"
+alias la="$_gnu_ls -lAh --color=auto"
+unset _gnu_ls
 alias tmucs='tmux -CC new -A -s main'
 
 # ── Local overrides ───────────────────────────────────────────────────
