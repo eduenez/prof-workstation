@@ -40,6 +40,11 @@ unset _gcloud_prefix
 [[ -r "$HOME/.opam/opam-init/init.zsh" ]] && \
     source "$HOME/.opam/opam-init/init.zsh" > /dev/null 2>&1
 
+# ── elan (Lean) ───────────────────────────────────────────────────────
+# The Linux curl installer puts lean/lake shims here (features/14-lean.sh);
+# Homebrew's elan-init is already on PATH.
+[[ -d "$HOME/.elan/bin" ]] && export PATH="$HOME/.elan/bin:$PATH"
+
 # ── SSH agent (Bitwarden) ─────────────────────────────────────────────
 export SSH_AUTH_SOCK="$HOME/.bitwarden-ssh-agent.sock"
 

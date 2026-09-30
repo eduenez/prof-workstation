@@ -19,8 +19,10 @@ _install_elan() {
             ;;
         Linux)
             info "Installing elan via official script (includes stable toolchain)..."
+            # --no-modify-path: ~/.zprofile is a symlink into this repo, and
+            # dotfiles/zprofile already adds ~/.elan/bin.
             curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf \
-                | sh -s -- -y --default-toolchain stable
+                | sh -s -- -y --no-modify-path --default-toolchain stable
             # Make lean/lake shims available in the current session.
             export PATH="$HOME/.elan/bin:$PATH"
             # The curl installer sets up the default toolchain; no extra step needed.
@@ -44,8 +46,8 @@ _setup_lean_toolchain() {
 }
 
 _setup_path() {
-    # Add lean/lake shims to PATH for the current session.
-    # Add ~/.elan/bin to dotfiles/zprofile for persistence if not already there.
+    # Add lean/lake shims to PATH for the current session
+    # (dotfiles/zprofile makes this persistent).
     [[ -d "$HOME/.elan/bin" ]] && export PATH="$HOME/.elan/bin:$PATH"
 }
 
