@@ -150,10 +150,12 @@ every block is guarded, so Homebrew-only blocks are skipped, and the MacPorts
 `PATH` lives in that machine's `~/.zprofile.local`. Never add MacPorts paths
 to `dotfiles/`.
 
-**Installers rewrite `~/.zshrc`.** juliaup, opam, conda, gcloud, Antigravity
-and friends append blocks to `~/.zshrc`; through the symlink they land in the
-repo file. If `git status` shows an unexpected `dotfiles/zshrc` change, move
-the block to `~/.zshrc.local` and `git checkout dotfiles/zshrc`.
+**Installers rewrite `~/.zshrc` or `~/.zprofile`.** juliaup, opam, conda,
+gcloud, Antigravity, OrbStack and friends append blocks to whichever one they
+target; through the symlink they land in the repo file. If `git status` shows
+an unexpected `dotfiles/zshrc` or `dotfiles/zprofile` change, move the block
+to the matching `.local` file (`~/.zshrc.local` or `~/.zprofile.local`) and
+`git checkout` the repo file.
 
 Status: `mac-studio` (2026-06-03; `~/.zshrc` had silently become a copy and
 was re-linked 2026-09-13), `macbook-gai` (2026-09-13). Pending: `macbook-utsa`.
