@@ -24,9 +24,13 @@ plugins=(git)
 
 source "$ZSH/oh-my-zsh.sh"
 
-export INFOPATH="/Applications/SageMath-10-9.app/Contents/Frameworks/Sage.framework/Versions/10.9/local/share/info:${INFOPATH:-}"
-
-export MANPATH="/Applications/SageMath-10-9.app/Contents/Frameworks/Sage.framework/Versions/10.9/local/share/man:${MANPATH:-}"
+# ── SageMath (macOS app bundle) ───────────────────────────────────────
+_sage_share="/Applications/SageMath-10-9.app/Contents/Frameworks/Sage.framework/Versions/10.9/local/share"
+if [[ -d "$_sage_share" ]]; then
+    export INFOPATH="$_sage_share/info:${INFOPATH:-}"
+    export MANPATH="$_sage_share/man:${MANPATH:-}"
+fi
+unset _sage_share
 
 # ── iTerm2 ────────────────────────────────────────────────────────────
 export ITERM_ENABLE_SHELL_INTEGRATION_WITH_TMUX=YES
