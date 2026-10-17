@@ -33,7 +33,7 @@ _install_python() {
         warn "uv not found — skipping Python install."
         return 1
     fi
-    if uv python list 2>/dev/null | grep -q "cpython-${PYTHON_VERSION}"; then
+    if uv python list --only-installed 2>/dev/null | grep -q "cpython-${PYTHON_VERSION}"; then
         info "Python $PYTHON_VERSION already managed by uv."
         return 0
     fi
