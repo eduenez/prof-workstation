@@ -54,7 +54,8 @@ alias ls="$_gnu_ls --color=auto"
 alias ll="$_gnu_ls -lh --color=auto"
 alias la="$_gnu_ls -lAh --color=auto"
 unset _gnu_ls
-alias tmucs='tmux -CC new -A -s main'
+alias tm='tmux new -A -s main'          # attach to "main", creating it if needed
+alias tmucs='tmux -CC new -A -s main'   # same, as iTerm2 native windows (tmux -CC)
 
 # ── Local overrides ───────────────────────────────────────────────────
 [[ -f "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"

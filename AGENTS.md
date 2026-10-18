@@ -153,6 +153,28 @@ machine (MacPorts). The `dotfiles/` are adapted from `~/.zshrc`, `~/.zprofile`,
   `--no-modify-path` so elan's installer stops appending to the symlinked
   `~/.zprofile`.
 
+### 2026-10-18 — tmux and Ghostty tuned for Emacs users (Claude Opus 5.5 / Claude Code)
+
+- Chose tmux over zellij: zellij's default keys (Ctrl-p/n/s/o/t/h/q) and
+  its "unlock-first" preset (Ctrl-g) collide with core Emacs keys, it is
+  rarely preinstalled on ssh hosts, and it has no iTerm2 `-CC` equivalent.
+- `dotfiles/tmux.conf`: prefix C-b → **C-z** (C-b is Emacs backward-char;
+  C-z C-z sends a literal suspend), OSC 52 clipboard (`set-clipboard on`),
+  true colour via `terminal-features` (replaces the `Tc` override),
+  focus events, titles, Emacs `mode-keys`/`status-keys` pinned, splits and
+  new windows in the current directory, minimal status bar with a PREFIX
+  indicator, and a quick-reference block at the end. Validated on tmux
+  3.7b (isolated `-L` server, no config errors).
+- `dotfiles/ghostty/config.ghostty`: unbinds Ghostty defaults (mostly
+  Linux, checked against `src/config/Config.zig` on main, v1.3.1) that
+  swallow Emacs keys — `C--`/`C-0`/`C-=`/`C-+` (font size, moved to
+  super), `C-RET`, `C-TAB`, `M-1…9`, `C-M-arrows`, `C-S-arrows`;
+  `macos-option-as-alt = left`; light padding/cursor polish. **Not yet
+  validated** — run `ghostty +validate-config` on a machine with Ghostty.
+  Ghostty has tmux control-mode parser code but no user-facing `-CC`
+  support yet, so `tmucs` stays iTerm2-only.
+- `dotfiles/zshrc`: new `tm` alias (`tmux new -A -s main`).
+
 ---
 
 ## Architecture

@@ -1,3 +1,10 @@
+# Ghostty — managed by prof-workstation (dotfiles/ghostty/config.ghostty).
+# Shared by Linux and macOS.  Every option, with docs:
+#   ghostty +show-config --default --docs
+# Reload in a running Ghostty: ctrl+shift+, (Linux) / cmd+shift+, (macOS).
+
+# ── Font ──────────────────────────────────────────────────────────────
+# The empty values first clear Ghostty's built-in fallback list.
 font-family = ""
 font-family-bold = ""
 font-family-italic = ""
@@ -6,8 +13,75 @@ font-family = "BlexMono Nerd Font"
 font-family-bold = "BlexMono Nerd Font Bold"
 font-family-italic = "BlexMono Nerd Font Italic"
 font-family-bold-italic = "BlexMono Nerd Font Bold Italic"
+# font-size = 13
 
+# ── Look ──────────────────────────────────────────────────────────────
+# Colour theme: browse with `ghostty +list-themes`; a pair follows the
+# OS light/dark setting, e.g.  theme = light:NAME,dark:NAME
+window-padding-x = 4
+window-padding-y = 2
+window-padding-balance = true
+cursor-style-blink = false
+mouse-hide-while-typing = true
+
+# ── Shell integration ─────────────────────────────────────────────────
 # Install xterm-ghostty terminfo on SSH hosts (tic, cached per host), else
 # fall back to TERM=xterm-256color; fixes "missing or unsuitable terminal:
 # xterm-ghostty" from tmux on the remote. Unlisted features keep defaults.
 shell-integration-features = ssh-env,ssh-terminfo
+
+# ── macOS ─────────────────────────────────────────────────────────────
+# Left Option is Meta (M-x, M-f, M-b … in Emacs and the shell); right
+# Option still composes characters (ñ, é, ¿ …).  No effect on Linux.
+macos-option-as-alt = left
+
+# ── Keys Emacs needs ──────────────────────────────────────────────────
+# Ghostty's default bindings (mostly the Linux ones) swallow keys that
+# Emacs uses, inside or outside tmux.  `unbind` passes them through.
+# (`ghostty +list-keybinds --default` shows the full default set.)
+
+# C-- / C-0 are Emacs's negative / digit argument, C-= and C-+ are free
+# for Emacs packages.  Font size moves to super (= cmd on macOS, where
+# these are already the defaults).
+keybind = ctrl+-=unbind
+keybind = ctrl+0=unbind
+keybind = ctrl+==unbind
+keybind = ctrl++=unbind
+keybind = super+-=decrease_font_size:1
+keybind = super+0=reset_font_size
+keybind = super+==increase_font_size:1
+
+# C-RET (Org: new heading) — Ghostty uses it for fullscreen on Linux.
+keybind = ctrl+enter=unbind
+# C-TAB / C-S-TAB (Emacs tab-bar, Org cycling) — Ghostty tab switching;
+# ctrl+page_up / ctrl+page_down still switch tabs on Linux.
+keybind = ctrl+tab=unbind
+keybind = ctrl+shift+tab=unbind
+# M-1 … M-9 (digit argument) — Ghostty's go-to-tab on Linux.
+keybind = alt+1=unbind
+keybind = alt+2=unbind
+keybind = alt+3=unbind
+keybind = alt+4=unbind
+keybind = alt+5=unbind
+keybind = alt+6=unbind
+keybind = alt+7=unbind
+keybind = alt+8=unbind
+keybind = alt+9=unbind
+keybind = alt+digit_1=unbind
+keybind = alt+digit_2=unbind
+keybind = alt+digit_3=unbind
+keybind = alt+digit_4=unbind
+keybind = alt+digit_5=unbind
+keybind = alt+digit_6=unbind
+keybind = alt+digit_7=unbind
+keybind = alt+digit_8=unbind
+# C-M-←↑↓→ (sexp / list motion) — Ghostty split focus on Linux.
+keybind = ctrl+alt+arrow_up=unbind
+keybind = ctrl+alt+arrow_down=unbind
+keybind = ctrl+alt+arrow_left=unbind
+keybind = ctrl+alt+arrow_right=unbind
+# C-S-←↑↓→ (shift-selection, Org) — Ghostty tab switching / prompt jumps.
+keybind = ctrl+shift+arrow_left=unbind
+keybind = ctrl+shift+arrow_right=unbind
+keybind = ctrl+shift+arrow_up=unbind
+keybind = ctrl+shift+arrow_down=unbind
