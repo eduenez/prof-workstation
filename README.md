@@ -158,7 +158,7 @@ to the matching `.local` file (`~/.zshrc.local` or `~/.zprofile.local`) and
 `git checkout` the repo file.
 
 Status: `mac-studio` (2026-06-03; `~/.zshrc` had silently become a copy and
-was re-linked 2026-09-13), `macbook-gai` (2026-09-13). Pending: `macbook-utsa`.
+was re-linked 2026-09-13), `macbook-gai` (2026-09-13), `macbook-utsa` (2026-10-23; MacPorts `PATH`, pyenv and the Emacs daemon controls moved to `~/.zprofile.local`).
 
 ---
 
