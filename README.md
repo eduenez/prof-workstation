@@ -47,6 +47,7 @@ tools, fonts, and GUI applications.
 | `secrets` | Printed checklist: SSH keys, auth tokens, API keys |
 | `lean` | Lean 4 formal verification environment via `elan` |
 | `detex` | Patched `detex` in `~/.local/bin` (TeX Live's crashes on `\includeonly -n`, breaking Recoll) |
+| `globalprotect` | macOS: `gp-on` / `gp-off` in `~/.local/bin`; stops GlobalProtect (UTSA VPN) autostarting at login |
 
 **Homebrew Brewfile covers:**
 core Unix tools · Git · TeX Live (via `mactex-no-gui`) · pandoc · gnuplot ·
@@ -186,7 +187,8 @@ prof-workstation/
 │   ├── 12-macos-prefs.sh   # macOS only
 │   ├── 13-secrets.sh
 │   ├── 14-lean.sh
-│   └── 15-detex.sh     # skips itself once TeX Live's detex is fixed
+│   ├── 15-detex.sh     # skips itself once TeX Live's detex is fixed
+│   └── 16-globalprotect.sh  # macOS only; also fine on MacPorts machines
 ├── dotfiles/
 │   ├── zshrc
 │   ├── zprofile
@@ -194,6 +196,7 @@ prof-workstation/
 │   ├── tmux.conf
 │   ├── ghostty/config.ghostty  # incl. SSH terminfo auto-install
 │   ├── ssh_config.template
+│   ├── bin/                # gp-on, gp-off (symlinked into ~/.local/bin)
 │   └── karabiner/
 ├── lists/
 │   ├── apt-packages.txt

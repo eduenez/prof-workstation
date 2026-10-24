@@ -1,0 +1,8 @@
+#!/bin/zsh
+# Stop GlobalProtect and keep it from starting at login
+U=gui/$(id -u)
+for s in pangpa pangps; do
+  launchctl bootout $U/com.paloaltonetworks.gp.$s 2>/dev/null
+  launchctl disable $U/com.paloaltonetworks.gp.$s
+done
+echo "GlobalProtect off"

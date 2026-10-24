@@ -1,0 +1,8 @@
+#!/bin/zsh
+# Start GlobalProtect (service first, then the menu-bar app)
+U=gui/$(id -u)
+for s in pangps pangpa; do
+  launchctl enable $U/com.paloaltonetworks.gp.$s
+  launchctl bootstrap $U /Library/LaunchAgents/com.paloaltonetworks.gp.$s.plist 2>/dev/null
+done
+echo "GlobalProtect on"

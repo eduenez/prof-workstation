@@ -175,6 +175,36 @@ machine (MacPorts). The `dotfiles/` are adapted from `~/.zshrc`, `~/.zprofile`,
   support yet, so `tmucs` stays iTerm2-only.
 - `dotfiles/zshrc`: new `tm` alias (`tmux new -A -s main`).
 
+### 2026-10-23 — GlobalProtect on a personal Mac: diagnosis, `gp-on`/`gp-off` (Claude Sonnet 5.5 / Claude Code)
+
+- UTSA's GlobalProtect 6.2.5 (installed from the UTSA portal pkg, not
+  automated here) hung on Connect on `mac-studio`. Root causes, in order
+  found: (1) a reinstall left the old network extension
+  `[terminated waiting to uninstall on reboot]` in `systemextensionsctl list`
+  — only a reboot clears it (`systemextensionsctl reset` needs SIP off);
+  (2) **BTM**: `PanGPS` never started because macOS Background Task
+  Management had "Allow in the Background" off for Palo Alto Networks
+  (remembered from the earlier install). `log show --predicate 'process ==
+  "launchd" AND eventMessage CONTAINS "trusted spawn"'` gives "Service cannot
+  be launched because of BTM policy" (0xa1); the app just logs
+  `Failed to connect to server at port:4767` (error 61). Fix: System Settings
+  → General → Login Items & Extensions → Allow in the Background; no reboot.
+  (3) a manually launched app instance blocking launchd's copy: repeating
+  "An old GlobalProtect instance exists" dialogs; kill the stray instance.
+- Gotcha: **both** `pangps` (the service) and `pangpa` (the menu-bar app) are
+  *user LaunchAgents* in `/Library/LaunchAgents`, `KeepAlive`, `RunAtLoad`
+  — not system daemons — so use `gui/$(id -u)/…`, never `sudo … system/…`.
+  That is why the app can't be quit and always returns at login.
+- New `features/16-globalprotect.sh` + `dotfiles/bin/gp-{on,off}`: symlinks
+  the scripts into `~/.local/bin`; if GlobalProtect is installed, runs
+  `launchctl disable` on both agents (persists across reboots) so it stays
+  off until `gp-on` (enable + bootstrap, service first). It does not stop a
+  running session. Re-run `bash install.sh globalprotect` after upgrading
+  GlobalProtect, since the installer re-loads the agents. Independent of
+  Homebrew, so it also works on the MacPorts machines.
+- **Caution for `macbook-utsa`** (a UTSA-owned machine): if IT manages
+  GlobalProtect there, don't run this feature without checking first.
+
 ---
 
 ## Architecture
@@ -291,6 +321,7 @@ citizen but receives less testing.
 | `13-secrets` | ✓ | — |
 | `14-lean` | ✓ | — |
 | `15-detex` | ✓ | ChatEDG (Ubuntu) |
+| `16-globalprotect` | ✓ | ✓ mac-studio 2026-10-23 |
 
 Update the "Tested" column as features are exercised on the Mac Studio.
 
