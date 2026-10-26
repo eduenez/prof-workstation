@@ -20,7 +20,7 @@
 
 # When this session carries a forwarded agent (ForwardAgent from the laptop), use it, so Bitwarden prompts
 # appear where you are sitting. First value wins in ssh_config, so this must precede Host *.
-Match exec "case \"$SSH_AUTH_SOCK\" in /tmp/ssh-*/agent.*|*/.ssh/agent/s.*.sshd.*|*/.ssh/agent.sock) test -S \"$SSH_AUTH_SOCK\";; *) false;; esac"
+Match exec "case \"$SSH_AUTH_SOCK\" in /tmp/ssh-*/agent.*|/tmp/vscode-ssh-auth-sock-*|*/.ssh/agent/s.*.sshd.*|*/.ssh/agent.sock) test -S \"$SSH_AUTH_SOCK\";; *) false;; esac"
     IdentityAgent       SSH_AUTH_SOCK
 
 Host *

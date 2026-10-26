@@ -49,7 +49,7 @@ unset _gcloud_prefix
 # A forwarded agent (ssh -A / ForwardAgent from the laptop: sshd sets /tmp/ssh-*/agent.*) wins, so approval prompts
 # reach the Bitwarden you are sitting at; otherwise this machine's own Bitwarden.
 case "$SSH_AUTH_SOCK" in
-    /tmp/ssh-*/agent.*|"$HOME"/.ssh/agent/s.*.sshd.*|"$HOME"/.ssh/agent.sock) ;;
+    /tmp/ssh-*/agent.*|/tmp/vscode-ssh-auth-sock-*|"$HOME"/.ssh/agent/s.*.sshd.*|"$HOME"/.ssh/agent.sock) ;;
     *) export SSH_AUTH_SOCK="$HOME/.bitwarden-ssh-agent.sock" ;;
 esac
 
