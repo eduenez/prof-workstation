@@ -227,6 +227,16 @@ machine (MacPorts). The `dotfiles/` are adapted from `~/.zshrc`, `~/.zprofile`,
   `/bin/sh -c` to expand `$HOME`. Testing the feature under a scratch `$HOME` loses the macOS
   keychain (no https credentials): point `url.<local path>.insteadOf` at a local clone instead.
 
+### 2026-10-25 — `18-latex-tools`: bibtex-tidy at the pinned version (Claude Opus 5.5 / Claude Code)
+
+- New `features/18-latex-tools.sh`: installs `bibtex-tidy` (npm, global) at the version pinned in
+  `~/repos/math-bibliography/.bibtex-tidy-version` (fallback `FALLBACK_TIDY_VERSION` in the script
+  when that clone is absent; keep the two equal). `LaTeX-shared-files/_scripts/vendor.py` (`sync-all`)
+  and math-bibliography's pre-commit hook call it, and `vendor.py` now refuses to run with any other
+  version, since another version may reformat entries. Idempotent: a matching version is left alone,
+  a different one is replaced. Needs npm (Brewfile: `node`).
+- Why: `bibtex-tidy` had never been installed on `eduardoacstudio`, and `sync-all` failed on it.
+
 ---
 
 ## Architecture
@@ -345,6 +355,7 @@ citizen but receives less testing.
 | `15-detex` | ✓ | ChatEDG (Ubuntu) |
 | `16-globalprotect` | ✓ | ✓ mac-studio 2026-10-23 |
 | `17-repos` | ✓ (macOS only) | ✓ macbook-gai (MacPorts) 2026-10-25 |
+| `18-latex-tools` | ✓ | ✓ eduardoacstudio 2026-10-25 |
 
 Update the "Tested" column as features are exercised on the Mac Studio.
 

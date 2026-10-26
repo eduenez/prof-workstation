@@ -190,7 +190,8 @@ prof-workstation/
 │   ├── 14-lean.sh
 │   ├── 15-detex.sh     # skips itself once TeX Live's detex is fixed
 │   ├── 16-globalprotect.sh  # macOS only; also fine on MacPorts machines
-│   └── 17-repos.sh     # macOS only; clones site-tools, links `repos`, installs the fetch LaunchAgent
+│   ├── 17-repos.sh     # macOS only; clones site-tools, links `repos`, installs the fetch LaunchAgent
+│   └── 18-latex-tools.sh  # bibtex-tidy at the version pinned in math-bibliography
 ├── dotfiles/
 │   ├── zshrc
 │   ├── zprofile
