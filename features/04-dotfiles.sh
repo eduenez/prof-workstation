@@ -90,6 +90,12 @@ _deploy_ssh_config() {
     info "Deployed ~/.ssh/config template — fill in host entries manually."
 }
 
+# sshd runs ~/.ssh/rc at login: it relinks ~/.ssh/agent.sock to the forwarded agent (see tmux.conf).
+_deploy_ssh_rc() {
+    mkdir -p "$HOME/.ssh" && chmod 700 "$HOME/.ssh"
+    _deploy_link "$DOTFILES/ssh/rc" "$HOME/.ssh/rc"
+}
+
 # zprofile, ssh_config.template and elisp's emacs-config.org all name the
 # macOS socket path ~/.bitwarden-ssh-agent.sock.  The Linux Bitwarden snap
 # puts its socket under ~/snap/bitwarden/<rev>/ instead; link the macOS path
@@ -205,6 +211,7 @@ run_step "tmux.conf"          _deploy_tmux
 run_step "Ghostty config"     _deploy_ghostty
 run_step "latexmkrc"          _deploy_latexmkrc
 run_step "SSH config template" _deploy_ssh_config
+run_step "ssh rc (agent link)" _deploy_ssh_rc
 run_step "Bitwarden agent socket link" _deploy_bitwarden_sock
 run_step "Mask competing SSH agents" _mask_competing_ssh_agents
 run_step "Karabiner config"   _deploy_karabiner
