@@ -344,7 +344,7 @@ citizen but receives less testing.
 | `14-lean` | ✓ | — |
 | `15-detex` | ✓ | ChatEDG (Ubuntu) |
 | `16-globalprotect` | ✓ | ✓ mac-studio 2026-10-23 |
-| `17-repos` | ✓ (macOS only) | ✓ MacBook-Pro (MacPorts) 2026-10-25 |
+| `17-repos` | ✓ (macOS only) | ✓ macbook-gai (MacPorts) 2026-10-25 |
 
 Update the "Tested" column as features are exercised on the Mac Studio.
 
