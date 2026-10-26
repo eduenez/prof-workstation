@@ -205,6 +205,28 @@ machine (MacPorts). The `dotfiles/` are adapted from `~/.zshrc`, `~/.zprofile`,
 - **Caution for `macbook-utsa`** (a UTSA-owned machine): if IT manages
   GlobalProtect there, don't run this feature without checking first.
 
+### 2026-10-25 — `repos`: fetch all clones, fast-forward where safe; `17-repos` (Claude Sonnet 5.5 / Claude Code)
+
+- New tool `repos` in the private repository `eduenez/site-tools` (`repos/repos.py`, stdlib only,
+  tests in `repos/tests/`): `repos` = parallel `git fetch --all --prune`, then
+  `git merge --ff-only @{u}` on the current branch only where safe; `repos fetch`, `repos status`,
+  `repos list`. Never rebases, resets, stashes, checks out or pushes; diverged, detached and
+  merge-in-progress repositories are only reported; `monorepo` is fetch-only by default
+  (`~/.config/repos/config.toml`, optional).
+- New `features/17-repos.sh`: clones `site-tools` to `~/repos/site-tools` (a private repository:
+  if the clone is impossible, e.g. another account, the feature warns and exits 0), symlinks
+  `repos` into `~/.local/bin`, and installs the LaunchAgent `com.eduenez.repos.fetch` (hourly
+  `repos fetch --no-ssh`; fetch only, so no file changes under an open editor buffer).
+  The plist lives in `site-tools` and is copied verbatim; the feature reloads the agent when it
+  differs, so `git pull` in `site-tools` then `bash install.sh repos` refreshes it. `REPOS_NO_AGENT=1`
+  links the tool without the agent. Log: `~/Library/Logs/repos-fetch.log`.
+- Gotchas: launchd's PATH is only `/usr/bin:/bin:/usr/sbin:/sbin`, so the plist sets
+  `PATH` for Homebrew and MacPorts; and the ssh agent a launchd job reaches is Apple's, not the
+  shell's (Bitwarden's), hence `--no-ssh` (repositories with an ssh remote would only fail or
+  raise an approval prompt every hour). `launchd` expands nothing, so the plist goes through
+  `/bin/sh -c` to expand `$HOME`. Testing the feature under a scratch `$HOME` loses the macOS
+  keychain (no https credentials): point `url.<local path>.insteadOf` at a local clone instead.
+
 ---
 
 ## Architecture
@@ -322,6 +344,7 @@ citizen but receives less testing.
 | `14-lean` | ✓ | — |
 | `15-detex` | ✓ | ChatEDG (Ubuntu) |
 | `16-globalprotect` | ✓ | ✓ mac-studio 2026-10-23 |
+| `17-repos` | ✓ (macOS only) | ✓ macbook-gai 2026-10-25 (MacPorts) |
 
 Update the "Tested" column as features are exercised on the Mac Studio.
 
