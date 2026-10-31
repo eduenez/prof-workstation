@@ -254,6 +254,36 @@ machine (MacPorts). The `dotfiles/` are adapted from `~/.zshrc`, `~/.zprofile`,
   `ZDOTDIR` to an empty dir to bypass them. Env-var `ZSH_THEME=...` tests are meaningless
   because the zshrc assigns it.
 
+### 2026-10-31 — Ctrl-Tab / prefix Tab for tmux windows; Ghostty on macOS (Claude Sonnet 5.5 / Claude Code)
+
+- Goal: switch tmux windows like GUI terminal tabs. `dotfiles/tmux.conf` now binds `prefix Tab` /
+  `prefix S-Tab` (`-r`, repeatable) and, without the prefix, `C-Tab` / `C-BTab` (tmux's name for
+  Ctrl-Shift-Tab) to `next-window` / `previous-window`. Tested against a real attached client in an
+  isolated `-L` server by writing the escape sequences to a pty.
+- Cost of the root binding: tmux now swallows Emacs's `C-<tab>`. Checked in Emacs 30.2 with the
+  daemon's packages: unbound globally and in Org (its cycle-archived is `C-c C-<tab>`); used only by
+  Magit/Forge `magit-section-cycle` (TAB, S-TAB, M-TAB still work), a minibuffer file-cache command,
+  and `tab-bar-mode` (off). Accepted. Escape hatch if missed: pass the key through when
+  `#{pane_current_command}` is emacs/emacsclient.
+- **`macbook-gai` had no Ghostty config deployed**: `~/.config/ghostty/` did not exist, so none of
+  `config.ghostty` (including the earlier "not yet validated" unbinds) was in effect. Linked it by
+  hand; `ghostty +validate-config` passes (Ghostty 1.4.0). Check `ls -l ~/.config/ghostty` on any
+  machine where a Ghostty setting seems ignored; `ghostty +list-keybinds` shows the effective set.
+- **On macOS, `keybind = ctrl+tab=unbind` does not free the key.** Ghostty uses native macOS tabs, and
+  AppKit adds Window → "Show Next/Previous Tab" (⌃⇥ / ⌃⇧⇥) itself (visible only with ≥2 tabs); an
+  unbound key falls through to them. After remapping those, Ctrl-Tab became worse than before:
+  it moved keyboard focus around the tab bar and the terminal got nothing. What works is an explicit
+  binding that sends the xterm modified-key sequence, in `config.ghostty`:
+  `ctrl+tab=csi:27;5;9~`, `ctrl+shift+tab=csi:27;6;9~`. tmux (`extended-keys on`) parses it, and
+  forwards it to programs that request modified keys (Emacs does). `cat -v` shows `^[[27;5;9~`.
+- Applied on `macbook-gai` only, not in the repo: `defaults write com.mitchellh.ghostty
+  NSUserKeyEquivalents -dict-add "Show Next Tab" '^~@$n' "Show Previous Tab" '^~@$p'` (read only at app
+  launch; quit Ghostty fully, since Cmd+Q may be cancelled by a confirm dialog and closing windows does
+  not quit). It is probably redundant now that the explicit binding wins — **not tested without it**.
+  Undo: `defaults delete com.mitchellh.ghostty NSUserKeyEquivalents`. Inspecting menus from a script
+  (`osascript` + System Events, `AXMenuItemCmdChar`/`AXMenuItemCmdModifiers`) needs the Accessibility
+  permission for the calling terminal.
+
 ---
 
 ## Architecture

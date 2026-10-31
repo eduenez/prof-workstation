@@ -53,10 +53,15 @@ keybind = super+==increase_font_size:1
 
 # C-RET (Org: new heading) — Ghostty uses it for fullscreen on Linux.
 keybind = ctrl+enter=unbind
-# C-TAB / C-S-TAB (Emacs tab-bar, Org cycling) — Ghostty tab switching;
+# C-TAB / C-S-TAB (Emacs tab-bar, Org cycling, tmux) — Ghostty tab switching;
 # ctrl+page_up / ctrl+page_down still switch tabs on Linux.
-keybind = ctrl+tab=unbind
-keybind = ctrl+shift+tab=unbind
+# Plain `unbind` is not enough on macOS: the key then falls to AppKit, whose
+# native-tab menu items ("Show Next Tab") take it, and once those are remapped
+# it only moves keyboard focus around the tab bar — the program never sees it.
+# So bind it explicitly and send the xterm modified-key sequence (CSI 27;mod;9~,
+# mod 5 = Ctrl, 6 = Ctrl+Shift); tmux (extended-keys) and Emacs decode it.
+keybind = ctrl+tab=csi:27;5;9~
+keybind = ctrl+shift+tab=csi:27;6;9~
 # M-1 … M-9 (digit argument) — Ghostty's go-to-tab on Linux.
 keybind = alt+1=unbind
 keybind = alt+2=unbind
