@@ -237,6 +237,23 @@ machine (MacPorts). The `dotfiles/` are adapted from `~/.zshrc`, `~/.zprofile`,
   a different one is replaced. Needs npm (Brewfile: `node`).
 - Why: `bibtex-tidy` had never been installed on `eduardoacstudio`, and `sync-all` failed on it.
 
+### 2026-10-31 — Midnight Commander subshell hang with Oh My Zsh (Claude Sonnet 5.5 / Claude Code)
+
+- Symptom (`macbook-gai`, MacPorts mc 4.8.33, zsh + OMZ `ys` theme): `mc` sat ~10 s with
+  only one blinking character, then showed a literal `^[_` instead of the `$ ` prompt, and
+  typing a command gave "the shell is already running a command" until ENTER.
+- Root cause: OMZ's async git prompt (background job + `zle -F` handler) never settles
+  under mc's subshell protocol (`precmd` hook doing `kill -STOP $$`; zle binding on `ESC _`
+  to fetch the command line, which is the stray `^[_`). Bisected in isolated tmux servers:
+  fast with no OMZ theme, with `mc -u`, or with a bash subshell; slow with any theme
+  (even `robbyrussell`) and async on; fast again with `async-prompt no`.
+- Fix: `dotfiles/zshrc` sets `zstyle ':omz:alpha:lib:git' async-prompt no` before OMZ loads,
+  only when `$MC_SID` (exported by mc to its subshell) is set; normal shells keep async.
+- Gotcha for testing: mc starts its zsh subshell through a temporary `ZDOTDIR` that still
+  sources your rc, so `zsh -f` as the outer shell does **not** isolate the dotfiles; set
+  `ZDOTDIR` to an empty dir to bypass them. Env-var `ZSH_THEME=...` tests are meaningless
+  because the zshrc assigns it.
+
 ---
 
 ## Architecture
