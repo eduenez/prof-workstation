@@ -175,6 +175,68 @@ machine (MacPorts). The `dotfiles/` are adapted from `~/.zshrc`, `~/.zprofile`,
   support yet, so `tmucs` stays iTerm2-only.
 - `dotfiles/zshrc`: new `tm` alias (`tmux new -A -s main`).
 
+### 2026-10-23 — GlobalProtect on a personal Mac: diagnosis, `gp-on`/`gp-off` (Claude Sonnet 5.5 / Claude Code)
+
+- UTSA's GlobalProtect 6.2.5 (installed from the UTSA portal pkg, not
+  automated here) hung on Connect on `mac-studio`. Root causes, in order
+  found: (1) a reinstall left the old network extension
+  `[terminated waiting to uninstall on reboot]` in `systemextensionsctl list`
+  — only a reboot clears it (`systemextensionsctl reset` needs SIP off);
+  (2) **BTM**: `PanGPS` never started because macOS Background Task
+  Management had "Allow in the Background" off for Palo Alto Networks
+  (remembered from the earlier install). `log show --predicate 'process ==
+  "launchd" AND eventMessage CONTAINS "trusted spawn"'` gives "Service cannot
+  be launched because of BTM policy" (0xa1); the app just logs
+  `Failed to connect to server at port:4767` (error 61). Fix: System Settings
+  → General → Login Items & Extensions → Allow in the Background; no reboot.
+  (3) a manually launched app instance blocking launchd's copy: repeating
+  "An old GlobalProtect instance exists" dialogs; kill the stray instance.
+- Gotcha: **both** `pangps` (the service) and `pangpa` (the menu-bar app) are
+  *user LaunchAgents* in `/Library/LaunchAgents`, `KeepAlive`, `RunAtLoad`
+  — not system daemons — so use `gui/$(id -u)/…`, never `sudo … system/…`.
+  That is why the app can't be quit and always returns at login.
+- New `features/16-globalprotect.sh` + `dotfiles/bin/gp-{on,off}`: symlinks
+  the scripts into `~/.local/bin`; if GlobalProtect is installed, runs
+  `launchctl disable` on both agents (persists across reboots) so it stays
+  off until `gp-on` (enable + bootstrap, service first). It does not stop a
+  running session. Re-run `bash install.sh globalprotect` after upgrading
+  GlobalProtect, since the installer re-loads the agents. Independent of
+  Homebrew, so it also works on the MacPorts machines.
+- **Caution for `macbook-utsa`** (a UTSA-owned machine): if IT manages
+  GlobalProtect there, don't run this feature without checking first.
+
+### 2026-10-25 — `repos`: fetch all clones, fast-forward where safe; `17-repos` (Claude Sonnet 5.5 / Claude Code)
+
+- New tool `repos` in the private repository `eduenez/site-tools` (`repos/repos.py`, stdlib only,
+  tests in `repos/tests/`): `repos` = parallel `git fetch --all --prune`, then
+  `git merge --ff-only @{u}` on the current branch only where safe; `repos fetch`, `repos status`,
+  `repos list`. Never rebases, resets, stashes, checks out or pushes; diverged, detached and
+  merge-in-progress repositories are only reported; `monorepo` is fetch-only by default
+  (`~/.config/repos/config.toml`, optional).
+- New `features/17-repos.sh`: clones `site-tools` to `~/repos/site-tools` (a private repository:
+  if the clone is impossible, e.g. another account, the feature warns and exits 0), symlinks
+  `repos` into `~/.local/bin`, and installs the LaunchAgent `com.eduenez.repos.fetch` (hourly
+  `repos fetch --no-ssh`; fetch only, so no file changes under an open editor buffer).
+  The plist lives in `site-tools` and is copied verbatim; the feature reloads the agent when it
+  differs, so `git pull` in `site-tools` then `bash install.sh repos` refreshes it. `REPOS_NO_AGENT=1`
+  links the tool without the agent. Log: `~/Library/Logs/repos-fetch.log`.
+- Gotchas: launchd's PATH is only `/usr/bin:/bin:/usr/sbin:/sbin`, so the plist sets
+  `PATH` for Homebrew and MacPorts; and the ssh agent a launchd job reaches is Apple's, not the
+  shell's (Bitwarden's), hence `--no-ssh` (repositories with an ssh remote would only fail or
+  raise an approval prompt every hour). `launchd` expands nothing, so the plist goes through
+  `/bin/sh -c` to expand `$HOME`. Testing the feature under a scratch `$HOME` loses the macOS
+  keychain (no https credentials): point `url.<local path>.insteadOf` at a local clone instead.
+
+### 2026-10-25 — `18-latex-tools`: bibtex-tidy at the pinned version (Claude Opus 5.5 / Claude Code)
+
+- New `features/18-latex-tools.sh`: installs `bibtex-tidy` (npm, global) at the version pinned in
+  `~/repos/math-bibliography/.bibtex-tidy-version` (fallback `FALLBACK_TIDY_VERSION` in the script
+  when that clone is absent; keep the two equal). `LaTeX-shared-files/_scripts/vendor.py` (`sync-all`)
+  and math-bibliography's pre-commit hook call it, and `vendor.py` now refuses to run with any other
+  version, since another version may reformat entries. Idempotent: a matching version is left alone,
+  a different one is replaced. Needs npm (Brewfile: `node`).
+- Why: `bibtex-tidy` had never been installed on `eduardoacstudio`, and `sync-all` failed on it.
+
 ---
 
 ## Architecture
@@ -291,6 +353,9 @@ citizen but receives less testing.
 | `13-secrets` | ✓ | — |
 | `14-lean` | ✓ | — |
 | `15-detex` | ✓ | ChatEDG (Ubuntu) |
+| `16-globalprotect` | ✓ | ✓ mac-studio 2026-10-23 |
+| `17-repos` | ✓ (macOS only) | ✓ macbook-gai (MacPorts) 2026-10-25 |
+| `18-latex-tools` | ✓ | ✓ eduardoacstudio 2026-10-25 |
 
 Update the "Tested" column as features are exercised on the Mac Studio.
 

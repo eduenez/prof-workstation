@@ -1,0 +1,25 @@
+#!/bin/sh
+# ~/.ssh/rc — managed by prof-workstation (dotfiles/ssh/rc).  sshd runs it at every login, before the shell.
+#
+# Keeps ~/.ssh/agent.sock pointing at the forwarded agent of the newest login, so a tmux session that outlives its
+# ssh connection (tmux.conf pins SSH_AUTH_SOCK to this path) signs through the connection you are using now.
+# A login without a forwarded agent removes the link, so a stale one is never mistaken for a live agent.
+#
+# sshd skips its own X11 cookie setup when this file exists, hence the xauth part at the end.
+
+link="$HOME/.ssh/agent.sock"
+if [ -S "$SSH_AUTH_SOCK" ] && [ "$SSH_AUTH_SOCK" != "$link" ]; then
+    ln -sfn "$SSH_AUTH_SOCK" "$link"
+elif [ -z "$SSH_AUTH_SOCK" ]; then
+    rm -f "$link"
+fi
+
+if read -r proto cookie && [ -n "$DISPLAY" ]; then
+    xauth_bin=$(command -v xauth || echo /opt/X11/bin/xauth)
+    if [ -x "$xauth_bin" ]; then
+        case "$DISPLAY" in
+            localhost:*) echo "add unix:${DISPLAY#localhost:} $proto $cookie" ;;
+            *)           echo "add $DISPLAY $proto $cookie" ;;
+        esac | "$xauth_bin" -q -
+    fi
+fi
