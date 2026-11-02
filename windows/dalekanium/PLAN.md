@@ -27,7 +27,7 @@ Scripts: `../inventory.sh` (read-only capture), `../prewipe-backup.sh` (safety c
 ## Install media (download on dalekanium while still on Windows 10)
 
 1. **Windows 11 ISO**, x64, current release (26H2 as of autumn 2026), from Microsoft's "Download Windows 11" page → section "Download Windows 11 Disk Image (ISO) for x64 devices", edition "Windows 11 (multi-edition ISO)", language English (United States).
-2. **Rufus** (portable .exe, rufus.ie). Write the ISO to a USB stick of **≥ 8 GB, which gets erased**. Partition scheme **GPT**, target **UEFI (non CSM)**. In Rufus's "Windows User Experience" dialog tick: remove the online Microsoft-account requirement, create a local account named `Eduardo`, disable data-collection questions, **disable BitLocker automatic device encryption**. Leave the TPM/Secure Boot bypass **unticked** (this machine will meet both once Phase 2 is done).
+2. **Rufus** (portable .exe, rufus.ie). Write the ISO to a USB stick of **≥ 8 GB, which gets erased**. Partition scheme **GPT**, target **UEFI (non CSM)**. In Rufus's "Windows User Experience" dialog tick: remove the online Microsoft-account requirement, create a local account named `Eduardo`, disable data-collection questions, **disable BitLocker automatic device encryption**. Leave the TPM/Secure Boot bypass **unticked** (this machine will meet both once Phase 2 is done). Also leave **unticked**: "Use 'Windows CA 2023' signed bootloaders" (this 2019 firmware almost certainly lacks the 2023 certificate, so Secure Boot would refuse the stick; Windows Update migrates the installed system to the 2023 chain itself later) and "Apply SkuSiPolicy.p7b" (an anti-rollback policy written into firmware variables that is hard to undo and can make older boot media unbootable; meant for high-security fleets).
 3. Nothing else is required offline: the Intel LAN works with Windows' built-in driver, and the exported drivers on M: cover the rest.
 
 ## Phases
@@ -41,7 +41,7 @@ Scripts: `../inventory.sh` (read-only capture), `../prewipe-backup.sh` (safety c
 ### 2. Firmware (BIOS setup, `Del` at power-on)
 - Advanced → AMD fTPM configuration → **Firmware TPM** (enable).
 - Boot → CSM → **Disabled** (UEFI only).
-- Boot → Secure Boot → OS Type **Windows UEFI mode**.
+- Boot → Secure Boot → OS Type **Windows UEFI mode**. Escape hatch: if the PC ever fails to boot after a Secure Boot certificate update, set Secure Boot → Disabled here; nothing is encrypted, so no data is at risk.
 - Do **not** update the BIOS unless a concrete problem appears (e.g. fTPM-related stutter, fixed in later AMD firmware); if so, do it deliberately and supervised.
 
 ### 3. Install

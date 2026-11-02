@@ -1,0 +1,93 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>dalekanium reinstall walk-through</title>
+<style>
+@page { size: Letter; margin: 0.45in 0.5in; }
+body { font-family: "DejaVu Sans", Arial, sans-serif; font-size: 8.9pt; line-height: 1.28; color: #000; margin: 0; }
+h1 { font-size: 13.5pt; margin: 0 0 2px; }
+.sub { font-size: 8.4pt; color: #333; margin-bottom: 6px; }
+.cols { column-count: 2; column-gap: 0.28in; }
+h2 { font-size: 9.8pt; margin: 7px 0 2px; padding: 1px 4px; background: #e6e6e6; break-after: avoid; }
+ol, ul { margin: 0 0 0 1.25em; padding: 0; }
+li { margin: 1px 0; }
+code { font-family: "DejaVu Sans Mono", Consolas, monospace; font-size: 8.1pt; background: #f2f2f2; padding: 0 2px; }
+.stop { border: 1.4px solid #000; padding: 3px 5px; margin: 4px 0; break-inside: avoid; }
+.box { border: 1px solid #777; padding: 3px 5px; margin: 4px 0; break-inside: avoid; }
+.cb::before { content: "\2610\00a0"; }
+ul.cbl { list-style: none; margin-left: 0.2em; }
+b { font-weight: bold; }
+</style></head><body>
+<h1>dalekanium — clean Windows 11 install: walk-through</h1>
+<div class="sub">Full plan: <code>M:\Eduardo\repos\prof-workstation\windows\dalekanium\PLAN.md</code> · Board: ASUS ROG STRIX B450-F · <b>Del</b> = firmware setup · <b>F8</b> = boot menu</div>
+<div class="cols">
+
+<h2>0. Before powering off</h2>
+<ul class="cbl">
+<li class="cb">Pre-wipe backup done: <code>F:\dalekanium-prewipe</code> + system image <code>F:\WindowsImageBackup</code></li>
+<li class="cb">Both repos committed and pushed</li>
+<li class="cb">Rufus stick made from the 26H2 ISO: GPT, UEFI (non CSM). Ticked: no MS-account requirement, local account <b>Eduardo</b>, skip privacy questions, <b>no BitLocker auto-encryption</b>. Unticked: TPM/Secure Boot bypass, "Windows CA 2023 bootloaders", "SkuSiPolicy.p7b"</li>
+<li class="cb"><code>wincmd.key</code> saved in Bitwarden</li>
+<li class="cb">At hand: Bitwarden master password + 2FA device; GitHub 2FA; UTSA login + MFA phone</li>
+</ul>
+
+<h2>1. Firmware (press Del at power-on)</h2>
+<ol>
+<li>F7 for Advanced Mode if needed.</li>
+<li>Advanced → AMD fTPM configuration → <b>Firmware TPM</b>.</li>
+<li>Boot → CSM → Launch CSM: <b>Disabled</b>.</li>
+<li>Boot → Secure Boot → OS Type: <b>Windows UEFI mode</b>.</li>
+<li><b>F10</b> save &amp; exit, then power <b>off</b>.</li>
+<li>Do <b>not</b> update the BIOS.</li>
+</ol>
+
+<h2>2. Cables (power off, PSU switch off)</h2>
+<ol>
+<li><b>Unplug the SATA cable of the M: SSD</b> (Crucial MX500 500 GB). It holds the old boot partition and all your data.</li>
+<li>Unplug both USB drives: F: WD Elements 13 TB, E: WD easystore 4 TB.</li>
+<li>Leave only the NVMe (C:, Silicon Power 512 GB) and the Rufus stick.</li>
+</ol>
+
+<h2>3. Install</h2>
+<ol>
+<li>Power on, <b>F8</b>, choose <b>"UEFI: &lt;USB stick&gt;"</b>.</li>
+<li>Language/keyboard: English (US). "Install Windows 11". "I don't have a product key".</li>
+<li>Edition: <b>Windows 11 Pro</b> (matches your licence).</li>
+<li>Custom install. Delete <b>every</b> partition on the one disk (~477 GB) → select the unallocated space → Next.</li>
+</ol>
+<div class="stop"><b>STOP</b> if setup lists more than one disk: M: is still connected. Power off and unplug it.</div>
+
+<h2>4. First setup screens</h2>
+<ol>
+<li>Region US; keyboard US, add <b>US-International</b>.</li>
+<li>Network: wired cable is fine.</li>
+<li>Local account <b>Eduardo</b>: set the password (+ security questions).</li>
+<li>Every privacy toggle <b>off</b>. Decline every offer: Phone Link, OneDrive backup ("skip"/"don't back up"), Office/Game Pass trials.</li>
+</ol>
+
+<h2>5. Reconnect and check</h2>
+<ol>
+<li>Shut down. Reconnect the M: SSD and both USB drives. Boot.</li>
+<li>Win+X → Disk Management. Letters must be <b>M:</b> MEDIA, <b>F:</b> Elements, <b>E:</b> easystore. Fix with "Change Drive Letter". Leave the old 1 GB "System Reserved" partition on the M: disk alone.</li>
+<li>Settings → System → Activation: <b>Active</b> (digital licence).</li>
+</ol>
+
+<h2>6. Back to git (in <code>cmd</code>)</h2>
+<ol>
+<li><code>winget install -e --id Git.Git</code></li>
+<li><code>winget install -e --id Bitwarden.Bitwarden</code>. Log in; Settings → enable <b>SSH agent</b>.</li>
+<li><code>services.msc</code> → "OpenSSH Authentication Agent" → Startup type <b>Disabled</b>.</li>
+<li><code>setx HOME M:\Eduardo</code>, then open a <b>new</b> cmd window.</li>
+<li><code>ssh -T git@github.com</code>: approve in Bitwarden; expect "Hi eduenez!".</li>
+<li><code>cd /d M:\Eduardo\repos\prof-workstation &amp;&amp; git pull</code></li>
+</ol>
+<div class="box">Then: install the Claude desktop app, link this computer, connect <code>M:\Eduardo\repos</code>, and say: <i>"dalekanium is reinstalled; continue with PLAN.md, Phase 5."</i> Don't install the sync apps until then (old folders get renamed first).</div>
+
+<h2>If something goes wrong</h2>
+<ul>
+<li><b>Stick not in the F8 menu:</b> CSM is off, so only UEFI sticks show. Remake the stick with GPT/UEFI.</li>
+<li><b>"Secure Boot violation":</b> set Secure Boot → Disabled, install, turn it back on later.</li>
+<li><b>"This PC can't run Windows 11":</b> fTPM isn't enabled (step 1.2).</li>
+<li><b>Microsoft account demanded anyway:</b> unplug the network cable at that screen. If there's still no local option, stop and ask Claude from another device.</li>
+<li><b>Escape hatch:</b> the old system image is on F:. Nothing is encrypted, so all disks stay readable from any computer.</li>
+</ul>
+</div>
+</body></html>
