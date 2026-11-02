@@ -1,0 +1,24 @@
+;; windows/setup/kanata.kbd — Caps Lock "supercharged" (same behaviour as dotfiles/karabiner on the Macs):
+;;   Caps Lock tapped alone (released within 1 s, no other key) -> Esc
+;;   Caps Lock held with another key                            -> Left Ctrl
+;;   Shift + Caps Lock held                                     -> Shift+Ctrl (follows from the above)
+;;   Left Ctrl + Caps Lock                                      -> real Caps Lock toggle
+;; kanata is cross-platform (Windows/macOS/Linux), so this one file could serve every machine.
+;; Test before installing the logon task:  kanata -c kanata.kbd   (Ctrl-C to stop)
+
+(defcfg
+  process-unmapped-keys yes
+)
+
+(defsrc caps lctl)
+
+(defalias
+  ;; tap = esc; becomes lctrl as soon as another key is pressed, or after 1 s held
+  cap  (tap-hold-press 200 1000 esc lctl)
+  ;; while Left Ctrl is held, Caps Lock sends a plain Caps Lock with Ctrl released
+  ctl  (multi lctl (layer-while-held lock))
+  rcap (unmod caps)
+)
+
+(deflayer base  @cap  @ctl)
+(deflayer lock  @rcap _)

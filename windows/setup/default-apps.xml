@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Default app associations for dalekanium, applied by Windows at every sign-in through the
+     policy HKLM\SOFTWARE\Policies\Microsoft\Windows\System\DefaultAssociationsConfiguration
+     (set by configure.sh). Chrome is installed machine-wide, so its ProgId is ChromeHTML.
+     To add more (e.g. .pdf -> SumatraPDF once installed): set it once in Settings, run
+       dism /online /export-defaultappassociations:%TEMP%\cur.xml
+     and copy the matching line here. -->
+<DefaultAssociations>
+  <Association Identifier=".htm"   ProgId="ChromeHTML" ApplicationName="Google Chrome" />
+  <Association Identifier=".html"  ProgId="ChromeHTML" ApplicationName="Google Chrome" />
+  <Association Identifier=".shtml" ProgId="ChromeHTML" ApplicationName="Google Chrome" />
+  <Association Identifier=".xht"   ProgId="ChromeHTML" ApplicationName="Google Chrome" />
+  <Association Identifier=".xhtml" ProgId="ChromeHTML" ApplicationName="Google Chrome" />
+  <Association Identifier=".mht"   ProgId="ChromeHTML" ApplicationName="Google Chrome" />
+  <Association Identifier=".mhtml" ProgId="ChromeHTML" ApplicationName="Google Chrome" />
+  <Association Identifier=".svg"   ProgId="ChromeHTML" ApplicationName="Google Chrome" />
+  <Association Identifier=".webp"  ProgId="ChromeHTML" ApplicationName="Google Chrome" />
+  <Association Identifier=".pdf"   ProgId="ChromeHTML" ApplicationName="Google Chrome" />
+  <Association Identifier="http"   ProgId="ChromeHTML" ApplicationName="Google Chrome" />
+  <Association Identifier="https"  ProgId="ChromeHTML" ApplicationName="Google Chrome" />
+</DefaultAssociations>

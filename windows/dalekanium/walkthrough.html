@@ -72,8 +72,8 @@ b { font-weight: bold; }
 
 <h2>6. Back to git (in <code>cmd</code>)</h2>
 <ol>
-<li><code>winget install -e --id Git.Git</code></li>
-<li><code>winget install -e --id Bitwarden.Bitwarden</code>. Log in; Settings → enable <b>SSH agent</b>.</li>
+<li><code>winget install -e --id Git.Git --scope machine</code></li>
+<li><code>winget install -e --id Bitwarden.Bitwarden --scope machine</code>. Log in; Settings → enable <b>SSH agent</b>.</li>
 <li><code>services.msc</code> → "OpenSSH Authentication Agent" → Startup type <b>Disabled</b>.</li>
 <li><code>setx HOME M:\Eduardo</code>, then open a <b>new</b> cmd window.</li>
 <li><code>ssh -T git@github.com</code>: approve in Bitwarden; expect "Hi eduenez!".</li>

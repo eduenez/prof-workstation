@@ -11,9 +11,11 @@ Scripts: `../inventory.sh` (read-only capture), `../prewipe-backup.sh` (safety c
 - [x] Review done and decisions recorded in `review.md`
 - [x] `delfincito-pc` renamed `dalekanium` throughout `filetree-reorg`
 - [ ] Run `prewipe-backup.sh copy`, then `image` (to `F:\dalekanium-prewipe`)
-- [ ] Download the install media (below)
+- [x] Download the install media (below)
 - [ ] **Before the wipe: write the one-page printable walk-through** (firmware → install → first boot → reconnect), from Phases 2–4 below, and print it
-- [ ] Phases 2–7
+- [x] Phases 2–4: Windows 11 Pro installed 2026-11-02 (Chrome, VS Code, Claude desktop installed by hand)
+- [ ] Phase 5: `windows/setup/configure.sh` written 2026-11-02 — dry-run, then `--apply`
+- [ ] Phases 6–7
 - [ ] Afterwards: update `filetree-reorg` docs where they still describe dalekanium as "Windows 10, sleeps after active use" and assume `%USERPROFILE%\synchro` (it will be `M:\Eduardo\synchro`)
 
 ## Machine facts that drive the plan
@@ -52,12 +54,14 @@ Scripts: `../inventory.sh` (read-only capture), `../prewipe-backup.sh` (safety c
 
 ### 4. First boot essentials (manual, before any script)
 - Activation check (Settings → System → Activation).
-- Install Git for Windows and Bitwarden; enable the Bitwarden SSH agent; make sure the "OpenSSH Authentication Agent" service is **Disabled**.
+- Install Git for Windows and Bitwarden **machine-wide** (`winget install -e --id Git.Git --scope machine`, same for `Bitwarden.Bitwarden`; winget's default for these is per-user); enable the Bitwarden SSH agent; make sure the "OpenSSH Authentication Agent" service is **Disabled**.
 - `setx HOME M:\Eduardo`; `git config --global core.sshCommand C:/Windows/System32/OpenSSH/ssh.exe` (or the `.gitconfig` on M: already carries it).
 - `cd M:\Eduardo\repos\prof-workstation && git pull` — from here the setup scripts take over.
 
-### 5. Windows configuration (scripted: to be written as `windows/setup/*`)
-Policy and registry, in this order: Windows Update (download automatically, ask before install, no reboot while logged on, **exclude drivers**, defer feature updates) → remove Copilot/widgets/ads/Spotlight/Start suggestions/telemetry where Pro allows → OneDrive personal off (policy) → Scancode Map (Caps→Left Ctrl, Scroll Lock→Caps) → known folders → Explorer settings → classic context menu → keyboard layouts (US + US-International) → power (sleep, hibernate off, wake timers on, USB selective suspend off) → fonts from the saved user-fonts folder → restore drivers if any device is missing (`pnputil /add-driver M:\Eduardo\win-inventory\DALEKANIUM-20261101-1853\drivers\*.inf /subdirs /install`).
+### 5. Windows configuration — `windows/setup/configure.sh` (+ `default-apps.xml`)
+Run from Git Bash as administrator: `bash configure.sh` (dry run), then `bash configure.sh --apply`; sign out/in or restart.
+Classic UI beyond what the registry can do: **StartAllBack** (paid, Win10/Win7-style taskbar with small icons, labels, top/side placement, classic Start and Explorer) — check its site lists support for the installed Windows build before buying; ExplorerPatcher is the free alternative but breaks more often after updates.
+Policy and registry, in this order: Windows Update (download automatically, ask before install, no reboot while logged on, **exclude drivers**, defer feature updates) → remove Copilot/widgets/ads/Spotlight/Start suggestions/telemetry where Pro allows → OneDrive personal account off (`DisablePersonalSync`, `KFMBlockOptIn` — **not** `DisableFileSyncNGSC`, which would also kill the UTSA account) → Scancode Map (Caps→Left Ctrl, Scroll Lock→Caps) → known folders → Explorer settings → classic context menu → keyboard layouts (US + US-International) → power (sleep, hibernate off, wake timers on, USB selective suspend off) → fonts from the saved user-fonts folder → restore drivers if any device is missing (`pnputil /add-driver M:\Eduardo\win-inventory\DALEKANIUM-20261101-1853\drivers\*.inf /subdirs /install`).
 
 ### 6. Software (scripted: `winget` manifest + MSYS2 `pacman` list), per `review.md`
 Bitdefender Total Security (no VPN), Surfshark, browsers, sync apps (OneDrive UTSA, Tresorit, Google Drive, Dropbox — rename old folders first, see below), Cryptomator + WinFsp, Office/Teams, Git, gh, MSYS2 (Emacs, Unix tools, mintty, openssh), TeX Live, Ghostscript, Asymptote, Total Commander, Far Manager, Notepad++, VS Code, VLC, IrfanView, SumatraPDF, Adobe Reader, calibre, PDFtk, kdiff3, PowerToys, Ditto, WinCompose, All the Unicode, Gpg4win, Zoom, WhatsApp, Claude, NVIDIA driver only, Wacom driver, Brother HL-L2420DW driver. WSL: Ubuntu 26.04 LTS (stored on M:), `prof-workstation` Linux features inside it. Emacs: native MSYS2 build as daily editor, shared `elisp` repo; WSL Emacs only for the Claude Code pane.
@@ -68,6 +72,16 @@ Old sync folders, before installing those apps: `M:\Eduardo\synchro\OneDrive - U
 Syncthing: pair with the mesh (Studio accepts the pending device), folders `synchro` and `secreto` at `M:\Eduardo\…`, versioning Simple/keep 3, `Thumbs.db` sweep task. Restic: independent repo on `F:`, own password, run by a Task Scheduler job that **wakes the PC**, holds it awake, waits for Syncthing to be idle, backs up, then sleeps it again. Bitdefender: exclude `synchro`, `secreto`, the Restic repo; allow Syncthing through its firewall. Restore test before calling it done.
 
 ## Gotchas already found
+
+### Found during the install (2026-11-02)
+
+- **Computer name**: setup assigned `DESKTOP-379STP2`; rename to `DALEKANIUM` (configure.sh `name`), it matters for Syncthing labels and Restic host tags.
+- **`winget` installs Chrome/VS Code per-user by default.** Always pass `--scope machine` (and `-e --id`); if a package has no machine installer, download the vendor's system-wide installer.
+- **Edge grabs file types.** In Settings → Default apps, the "Microsoft Edge" entry's button *assigns* every type it can open to Edge; it does not open Edge's settings. Fix without mousing through each type: Settings → Default apps → Google Chrome → **Set default** (one click), and the `DefaultAssociationsConfiguration` policy (configure.sh `defaults`) re-asserts Chrome at every sign-in. Edge cannot be uninstalled on a US Windows install without breaking WebView2/updates; neutralise it instead (configure.sh `edge`). Optional: MSEdgeRedirect (open source) sends `microsoft-edge:` links from Start/Widgets/help to the default browser.
+- **Passkey catch-22 in a new Chrome profile.** With no Bitwarden extension yet, a site asking for a passkey falls through to Windows' own dialog ("insert security key"). Order that avoids it: create the Chrome profile **without signing in**, install the Bitwarden extension, unlock Bitwarden, *then* sign in to Google/Claude. In Windows' dialog, "Cancel"/"Use another device" or the site's "Try another way" reach TOTP/password. Recent Windows 11 builds also let a password manager register as a system passkey provider (Settings → Accounts → Passkeys → Advanced options); enable Bitwarden there if it is offered.
+- **Git Bash rewrites `/flags` and `C:\` paths** passed to Windows programs; scripts set `MSYS_NO_PATHCONV=1`.
+
+### Earlier
 
 - `wmic` rejects output paths containing hyphens, and is gone in Win11: use CIM via PowerShell.
 - Cygwin's own `whoami` shadows `C:\Windows\System32\whoami.exe`; call Windows tools by full path where names collide. Keep MSYS2/Cygwin tools **off** the global PATH.
