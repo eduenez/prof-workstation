@@ -1,0 +1,2 @@
+# Licence keys and other secrets never go into git
+*.key

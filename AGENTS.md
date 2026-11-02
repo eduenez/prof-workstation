@@ -286,6 +286,20 @@ machine (MacPorts). The `dotfiles/` are adapted from `~/.zshrc`, `~/.zprofile`,
 
 ---
 
+### 2026-11-01/02 — Windows target begins: dalekanium inventory and reinstall plan (Claude Opus 5.5 / Cowork)
+
+- First Windows work in this repo. New `windows/` tree: `inventory.sh` (read-only snapshot of a
+  Windows machine from Cygwin/WSL bash: software, registry settings, policies, services, drivers,
+  WSL/Cygwin state), `prewipe-backup.sh` (robocopy of the profile + `wsl --export` + `wbadmin`
+  system image to an external drive), `.gitattributes` (LF for `.sh`, CRLF for `.cmd`/`.bat`).
+- `windows/dalekanium/`: `review.md` (as-is → to-be decisions per program and setting) and
+  `PLAN.md` (handoff: status, machine facts, install media, phases, gotchas). Start there.
+- Decisions: clean Win11 install (not in-place), local account via Rufus answer file, MSYS2
+  replaces Cygwin, native MSYS2 Emacs as the Windows daily editor (WSL Emacs only for the
+  `eat`-based Claude Code pane), Ubuntu 26.04 in WSL, Ditto as clipboard manager.
+- Not yet written: `windows/setup/*` (policy/registry, winget + pacman manifests). Inventory
+  output stays outside git (`M:\Eduardo\win-inventory`); it holds machine-specific details.
+
 ## Architecture
 
 ```

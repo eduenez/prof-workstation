@@ -1,0 +1,5 @@
+# Shell scripts must keep LF endings even when checked out by Git for Windows,
+# or Cygwin/WSL bash chokes on the CRs. Batch files need CRLF.
+*.sh   text eol=lf
+*.cmd  text eol=crlf
+*.bat  text eol=crlf
