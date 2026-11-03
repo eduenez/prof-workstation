@@ -13,14 +13,12 @@
             "hidden": true
         },
         {
-            "guid": "{77859b38-02f2-4c67-b839-2e2603373d43}",
             "name": "Git Bash",
             "commandline": "%ProgramFiles%\\Git\\bin\\bash.exe -l -i",
             "icon": "%ProgramFiles%\\Git\\mingw64\\share\\git\\git-for-windows.ico",
             "startingDirectory": "M:\\Eduardo"
         },
         {
-            "guid": "{06dcec19-0d60-47cd-b4b8-398695e19bb1}",
             "name": "Git Bash (admin)",
             "commandline": "%ProgramFiles%\\Git\\bin\\bash.exe -l -i",
             "icon": "%ProgramFiles%\\Git\\mingw64\\share\\git\\git-for-windows.ico",

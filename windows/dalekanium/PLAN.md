@@ -15,7 +15,9 @@ Scripts: `../inventory.sh` (read-only capture), `../prewipe-backup.sh` (safety c
 - [ ] **Before the wipe: write the one-page printable walk-through** (firmware → install → first boot → reconnect), from Phases 2–4 below, and print it
 - [x] Phases 2–4: Windows 11 Pro installed 2026-11-02 (Chrome, VS Code, Claude desktop installed by hand)
 - [ ] Phase 5: `windows/setup/configure.sh` written 2026-11-02 — dry-run, then `--apply`
-- [ ] Phases 6–7
+- [x] Phase 5 applied 2026-11-02 (Widgets set via gpedit; Terminal fragment not picked up yet — investigating)
+- [ ] Phase 6: `windows/setup/packages.cmd` written 2026-11-02 (lists: winget-machine.txt, winget-sync.txt, appx-remove.txt, msys2-packages.txt) — dry run, then `--apply`
+- [ ] Phase 7
 - [ ] Afterwards: update `filetree-reorg` docs where they still describe dalekanium as "Windows 10, sleeps after active use" and assume `%USERPROFILE%\synchro` (it will be `M:\Eduardo\synchro`)
 
 ## Machine facts that drive the plan
@@ -68,6 +70,8 @@ Bitdefender Total Security (no VPN), Surfshark, browsers, sync apps (OneDrive UT
 
 Old sync folders, before installing those apps: `M:\Eduardo\synchro\OneDrive - University of Texas at San Antonio` → `M:\Eduardo\`, `M:\Eduardo\synchro\private` → `M:\Eduardo\Tresorit-old` (Tresorit then syncs fresh into `M:\Eduardo\Tresorit`), remainder of `M:\Eduardo\synchro` → `M:\Eduardo\synchro-legacy`. This frees `M:\Eduardo\synchro` for Syncthing.
 
+Manual installs (not in winget or licence-bound): Bitdefender, Microsoft 365 (UTSA), NVIDIA driver only, TeX Live, **Ghostscript** (ghostscript.com), **Tresorit** (tresorit.com; after the folder renames), WhatsApp and All the Unicode (Store), StartAllBack (optional), UTSA VPN. winget ids are case-sensitive with `-e` (`SamHocevar.WinCompose`).
+
 ### 7. Backup node (per `filetree-reorg/design/syncthing_setup.md` and `restic_backup.md`, Phase 4)
 Syncthing: pair with the mesh (Studio accepts the pending device), folders `synchro` and `secreto` at `M:\Eduardo\…`, versioning Simple/keep 3, `Thumbs.db` sweep task. Restic: independent repo on `F:`, own password, run by a Task Scheduler job that **wakes the PC**, holds it awake, waits for Syncthing to be idle, backs up, then sleeps it again. Bitdefender: exclude `synchro`, `secreto`, the Restic repo; allow Syncthing through its firewall. Restore test before calling it done.
 
@@ -79,6 +83,7 @@ Syncthing: pair with the mesh (Studio accepts the pending device), folders `sync
 - **`winget` installs Chrome/VS Code per-user by default.** Always pass `--scope machine` (and `-e --id`); if a package has no machine installer, download the vendor's system-wide installer.
 - **Edge grabs file types.** In Settings → Default apps, the "Microsoft Edge" entry's button *assigns* every type it can open to Edge; it does not open Edge's settings. Fix without mousing through each type: Settings → Default apps → Google Chrome → **Set default** (one click), and the `DefaultAssociationsConfiguration` policy (configure.sh `defaults`) re-asserts Chrome at every sign-in. Edge cannot be uninstalled on a US Windows install without breaking WebView2/updates; neutralise it instead (configure.sh `edge`). Optional: MSEdgeRedirect (open source) sends `microsoft-edge:` links from Start/Widgets/help to the default browser.
 - **Passkey catch-22 in a new Chrome profile.** With no Bitwarden extension yet, a site asking for a passkey falls through to Windows' own dialog ("insert security key"). Order that avoids it: create the Chrome profile **without signing in**, install the Bitwarden extension, unlock Bitwarden, *then* sign in to Google/Claude. In Windows' dialog, "Cancel"/"Use another device" or the site's "Try another way" reach TOTP/password. Recent Windows 11 builds also let a password manager register as a system passkey provider (Settings → Accounts → Passkeys → Advanced options); enable Bitwarden there if it is offered.
+- **Some policy keys refuse `reg.exe` even as admin** ("Access is denied"): Windows 11's User Choice Protection Driver blocks reg.exe/PowerShell on them. Hit on `HKLM\SOFTWARE\Policies\Microsoft\Dsh\AllowNewsAndInterests` (Widgets); set through `gpedit.msc` instead (Widgets → Allow Widgets → Disabled), which also persists it in the local policy file.
 - **Git Bash rewrites `/flags` and `C:\` paths** passed to Windows programs; scripts set `MSYS_NO_PATHCONV=1`.
 
 ### Earlier

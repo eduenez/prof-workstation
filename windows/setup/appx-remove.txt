@@ -1,0 +1,32 @@
+# windows/setup/appx-remove.txt — preinstalled Store apps removed by packages.sh section "remove"
+# (Get-AppxPackage -AllUsers -Name <name> | Remove-AppxPackage -AllUsers, plus the provisioned
+# copy, so a feature update does not bring them back for new users). Edge itself is not
+# removable on a US install and is neutralised by configure.sh instead.
+MicrosoftWindows.Client.WebExperience   # Widgets
+Microsoft.Copilot
+Microsoft.Windows.Ai.Copilot.Provider
+Microsoft.BingNews
+Microsoft.BingWeather
+Microsoft.BingSearch
+Microsoft.GetHelp
+Microsoft.Getstarted
+Microsoft.MicrosoftSolitaireCollection
+Microsoft.MicrosoftOfficeHub
+Microsoft.OutlookForWindows             # "new Outlook"; classic Outlook comes with Microsoft 365
+Microsoft.People
+Microsoft.PowerAutomateDesktop
+Microsoft.Todos
+Microsoft.YourPhone                     # Phone Link
+MicrosoftWindows.CrossDevice
+Microsoft.WindowsFeedbackHub
+Microsoft.WindowsMaps
+Microsoft.ZuneMusic
+Microsoft.ZuneVideo
+Microsoft.GamingApp                     # Xbox app (games come back via Steam/GOG if wanted)
+Microsoft.XboxGamingOverlay
+Microsoft.XboxSpeechToTextOverlay
+Microsoft.Xbox.TCUI
+Microsoft.XboxIdentityProvider
+Clipchamp.Clipchamp
+MSTeams                                 # consumer Teams chat; the work Teams is Microsoft.Teams (winget)
+Microsoft.549981C3F5F10                 # Cortana

@@ -2,12 +2,12 @@
 # windows/setup/configure.sh — Phase 5 of windows/dalekanium/PLAN.md:
 # Windows 11 settings, policies and registry, applied deterministically.
 #
-# Run from Git Bash started with "Run as administrator" (Eduardo's account is an admin,
-# so HKCU below is still Eduardo's own hive):
-#   bash configure.sh            # dry run: prints every change, touches nothing
-#   bash configure.sh --apply    # make the changes
-#   bash configure.sh --apply edge defaults   # only some sections
-# Sections: name update privacy edge defaults lockscreen shell input folders power
+# Run from an ELEVATED cmd (Eduardo's account is an admin, so HKCU below is still his own hive):
+#   M:\Eduardo\repos\prof-workstation\windows\setup\configure.cmd            (dry run)
+#   M:\Eduardo\repos\prof-workstation\windows\setup\configure.cmd --apply
+#   ...configure.cmd --apply edge defaults        (only some sections)
+# or from "Git Bash (admin)":  bash configure.sh [--apply] [sections]
+# Sections: name update privacy edge defaults lockscreen shell input folders power terminal
 # Idempotent: re-running re-applies the same values. Sign out and back in afterwards
 # (the computer rename needs a restart).
 #
@@ -19,19 +19,29 @@ export MSYS_NO_PATHCONV=1 MSYS2_ARG_CONV_EXCL='*'   # Git Bash must not rewrite 
 
 APPLY=false
 [[ ${1:-} == --apply ]] && { APPLY=true; shift; }
-SECTIONS=${*:-"name update privacy edge defaults lockscreen shell input folders power"}
+SECTIONS=${*:-"name update privacy edge defaults lockscreen shell input folders power terminal"}
 HERE=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 FAILS=0
 
 if ! net.exe session >/dev/null 2>&1; then
-    echo "Run this from Git Bash started as administrator." >&2; exit 1
+    echo "Run this from an elevated (Run as administrator) cmd or Git Bash." >&2; exit 1
 fi
 $APPLY || echo "DRY RUN — nothing will change. Re-run with --apply."
+$APPLY && { mkdir -p "$LOGDIR"; echo "Logging to $(cygpath -w "$LOG" 2>/dev/null || echo "$LOG")"; }
 
-run() {   # run CMD...: print, and execute when --apply
+LOGDIR=/c/ProgramData/dalekanium/logs
+LOG="$LOGDIR/configure-$(date +%Y%m%d-%H%M%S).log"
+FAILED=()
+run() {   # run CMD...: print, and execute when --apply; output and errors go to $LOG
     printf '  %s\n' "$*"
     $APPLY || return 0
-    "$@" >/dev/null 2>&1 || { echo "    !! failed"; FAILS=$((FAILS+1)); }
+    { printf '\n$ %s\n' "$*"; } >>"$LOG"
+    "$@" >>"$LOG" 2>&1; local rc=$?
+    if (( rc != 0 )); then
+        echo "    !! failed (exit $rc) — details in the log"
+        echo "!! FAILED" >>"$LOG"
+        FAILS=$((FAILS+1)); FAILED+=("$*")
+    fi
 }
 reg_dword() { run reg.exe add "$1" /v "$2" /t REG_DWORD /d "$3" /f; }
 reg_sz()    { run reg.exe add "$1" /v "$2" /t REG_SZ /d "$3" /f; }
@@ -204,9 +214,20 @@ if want power; then
     run powercfg.exe /setactive SCHEME_CURRENT
 fi
 
+# ── Windows Terminal: cmd and Git Bash start in M:\Eduardo; PowerShell hidden ──
+if want terminal; then
+    hdr "Windows Terminal profiles (fragment): cmd/Git Bash start in M:\\Eduardo, Git Bash (admin) added, PowerShell + Azure hidden"
+    FRAG="${LOCALAPPDATA//\\//}/Microsoft/Windows Terminal/Fragments/dalekanium"
+    run mkdir -p "$FRAG"
+    run cp "$HERE/terminal-fragment.json" "$FRAG/profiles.json"
+    echo "  (pick the default profile once: Terminal -> Settings -> Startup -> Default profile)"
+fi
+
 echo
 if $APPLY; then
     echo "Done, $FAILS failure(s). Sign out and back in (restart if the computer was renamed)."
+    for f in "${FAILED[@]}"; do echo "  failed: $f"; done
+    echo "Log: $(cygpath -w "$LOG" 2>/dev/null || echo "$LOG")"
 else
     echo "Dry run finished. Review the list above, then: bash configure.sh --apply"
 fi

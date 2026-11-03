@@ -1,0 +1,5 @@
+# windows/setup/winget-sync.txt — sync clients, installed by packages.sh section "sync"
+# AFTER the old M:\Eduardo\synchro folders are renamed. Machine-wide, like winget-machine.txt.
+Dropbox.Dropbox
+Google.GoogleDrive
+# Tresorit: not in winget -> manual (tresorit.com installer), same timing

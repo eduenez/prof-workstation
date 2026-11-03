@@ -1,0 +1,23 @@
+# windows/setup/msys2-packages.txt — pacman packages for C:\msys64 (packages.sh section "msys2")
+# ucrt64 = native Windows programs; plain names = MSYS (Unix-emulation) tools.
+mingw-w64-ucrt-x86_64-emacs
+mingw-w64-ucrt-x86_64-ripgrep
+mingw-w64-ucrt-x86_64-fd
+mingw-w64-ucrt-x86_64-hunspell
+mingw-w64-ucrt-x86_64-hunspell-en
+mingw-w64-ucrt-x86_64-aspell
+mingw-w64-ucrt-x86_64-aspell-en
+mingw-w64-ucrt-x86_64-sqlite3
+zsh
+tmux
+mc
+make
+zip
+unzip
+tree
+man-db
+diffutils
+findutils
+grep
+sed
+gawk

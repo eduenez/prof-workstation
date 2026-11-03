@@ -1,0 +1,54 @@
+# windows/setup/winget-machine.txt — installed with: winget install -e --id <ID> --scope machine
+# One package id per line; '#' starts a comment. A package with no machine-wide installer FAILS
+# (it is never silently installed per-user) and is listed at the end for a manual install.
+# Sync apps (Dropbox, Google Drive, Tresorit) are in winget-sync.txt: install them only after
+# the old folders under M:\Eduardo\synchro are renamed (packages.sh section "sync").
+
+# browsers and passwords
+Google.Chrome
+Mozilla.Firefox
+Bitwarden.Bitwarden
+
+# development and the command line
+Git.Git
+GitHub.cli
+Microsoft.VisualStudioCode
+MSYS2.MSYS2                 # native Emacs + Unix tools (packages: msys2-packages.txt)
+
+# file managers and editors
+Ghisler.TotalCommander      # licence: put wincmd.key next to TOTALCMD64.EXE
+FarManager.FarManager
+Notepad++.Notepad++
+KDE.KDiff3
+
+# documents
+SumatraPDF.SumatraPDF
+Adobe.Acrobat.Reader.64-bit
+# Ghostscript: not in winget -> manual (ghostscript.com, 64-bit AGPL installer)
+calibre.calibre
+PDFLabs.PDFtk.Free
+
+# media and utilities
+VideoLAN.VLC
+IrfanSkiljan.IrfanView
+7zip.7zip
+Microsoft.PowerToys
+Ditto.Ditto
+SamHocevar.WinCompose
+
+# security, encryption, keys
+Cryptomator.Cryptomator
+WinFsp.WinFsp
+GnuPG.Gpg4win
+Surfshark.Surfshark
+
+# backup node
+Syncthing.Syncthing
+restic.restic
+
+# communication
+Zoom.Zoom
+Microsoft.Teams
+
+# hardware
+Wacom.WacomTabletDriver
