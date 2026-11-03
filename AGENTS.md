@@ -300,6 +300,23 @@ machine (MacPorts). The `dotfiles/` are adapted from `~/.zshrc`, `~/.zprofile`,
 - Not yet written: `windows/setup/*` (policy/registry, winget + pacman manifests). Inventory
   output stays outside git (`M:\Eduardo\win-inventory`); it holds machine-specific details.
 
+### 2026-11-03 — `macbook-gai` warm while asleep: diagnosis only (Claude Opus 5.5 / Claude Code)
+
+- No code change. Symptom: the laptop was warm hours after closing the lid. The `pmset -g log`
+  showed DarkWakes lasting 4–21 h, all on AC, with `powernap 1`. Background work during them:
+  Photos `mediaanalysisd`, `fileproviderd` downloads (four cloud-drive accounts plus Syncthing),
+  hourly `storagekitd` runs (>100 % CPU, 10–20 min, cause not confirmed) with the exFAT Crucial
+  X9 plugged in and Spotlight indexing it, `coreaudiod` sleep-blockers from an unidentified app
+  (one held 53 h), the hourly LaunchAgents and `com.apple.obc` maintenance wakes. Commands,
+  fixes and the cost of turning off Power Nap: README → *Troubleshooting: Mac warm while asleep*.
+- **Status: not fixed yet.** Power Nap is still on. Turning off Spotlight for the drive failed
+  (see the README gotchas: sudo can't be used from `!`, and root `mdutil` via `osascript`
+  couldn't resolve the removable volume). After the fixes are applied, check that DarkWake
+  durations in `pmset -g log` drop under about 60 s. If they don't, look next at the external
+  drive and the app holding audio open.
+- Not automated in `12-macos-prefs` on purpose: Power Nap is a per-machine trade-off (desktops
+  on AC may want it), and it needs sudo.
+
 ## Architecture
 
 ```

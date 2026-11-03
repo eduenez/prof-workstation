@@ -266,6 +266,70 @@ All other configuration is shared between users with the same software stack.
 
 ---
 
+## Troubleshooting: Mac warm while asleep (lid closed)
+
+A Mac that is still warm hours after you close the lid is usually not really
+asleep. It keeps entering **DarkWake** (CPU on, screen off) and sometimes stays
+there for hours, running background work. Diagnosed on `macbook-gai`
+(MacBook Pro M4 Pro, on AC) on 2026-11-03.
+
+**Check it.** Each DarkWake line ends with how long the Mac stayed awake:
+
+```bash
+pmset -g log | grep -E "DarkWake|Sleep  " | tail -30   # should be under ~60 s, not thousands
+pmset -g | grep -E "powernap|sleep "                   # powernap 1 allows long wakes on AC
+pmset -g assertions                                    # what blocks sleep right now
+pmset -g log | grep "Wake Requests" | tail -3          # who scheduled the next wakes
+```
+
+To see what ran during one long stretch, show the log for that window, e.g.
+`pmset -g log | awk '/^2026-11-02 22:4/,/^2026-11-03 06:2/' | grep Assertions`.
+
+**What `macbook-gai` showed:** DarkWakes lasting 4–21 h, always on AC power,
+with Power Nap on. During them:
+- Photos analysis (`mediaanalysisd`), probably the biggest heat source.
+- Cloud-drive downloads (`fileproviderd`). Dropbox, two Google Drive accounts,
+  OneDrive and Syncthing are all active.
+- `storagekitd` (disk management) running for 10–20 min about once an hour, at
+  >100 % CPU, while the 4 TB exFAT Crucial X9 was plugged in with Spotlight
+  indexing on. What triggers it is not confirmed.
+- `coreaudiod` sleep-blockers held open by some app, one for 53 h. The owner
+  was not identified (likely a browser tab, Zoom or Signal).
+- The hourly LaunchAgents (`repos fetch`, Recoll indexing, junk sweep),
+  XProtect scans, Spotlight, and Optimized Battery Charging (`com.apple.obc`)
+  maintenance wakes.
+
+The `caffeinate -i` from Claude Code is not a cause: it lasts only while a
+session is working, and `-i` does not prevent sleep when you close the lid.
+
+**Fixes, most effective first:**
+1. Turn off Power Nap: System Settings → Battery → Options → *Enable Power
+   Nap*, or `sudo pmset -a powernap 0`. `-b` (battery only) would not help,
+   because the long wakes were all on AC.
+2. Eject external drives before closing the lid, or turn off Spotlight for
+   them: System Settings → Spotlight → *Search Privacy…* → **+**.
+3. Let Photos finish its analysis once while the Mac is awake and plugged in.
+4. Close tabs or call apps that hold audio open before closing the lid.
+
+**What turning off Power Nap costs:** Mail, Calendar, iCloud, the cloud drives,
+Syncthing, Time Machine and software-update downloads stop running during
+sleep and catch up after you wake the Mac. launchd runs each missed
+`StartInterval` / `StartCalendarInterval` job once at wake (Recoll's 03:15
+embedding job included), so expect a short burst of activity after you open
+the lid. Find My, alarms and scheduled wakes keep working. Undo with
+`sudo pmset -a powernap 1`.
+
+**Gotchas when applying these from Claude Code:**
+- `!`-prefixed commands can't ask for a sudo password. Run them in a normal
+  terminal window.
+- `osascript -e 'do shell script "..." with administrator privileges'` shows a
+  password dialog, but `mdutil` run that way failed on the external drive
+  (`could not resolve path`) under both `/Volumes/…` and
+  `/System/Volumes/Data/Volumes/…`. This is probably macOS's privacy rules for
+  removable volumes. Use the Spotlight settings pane instead.
+
+---
+
 ## Relationship to the `elisp` repository
 
 The [elisp](https://github.com/eduenez/elisp) repository contains the
