@@ -344,6 +344,11 @@ machine (MacPorts). The `dotfiles/` are adapted from `~/.zshrc`, `~/.zprofile`,
   the tmux session's `@affinities` option (hex; `sed 's/^a_//' | xxd -r -p` decodes it) and
   restores it on every attach. To reset it, detach, then `tmux set -u -t <session> @affinities`.
   Alternatively, drag the tabs together while attached; iTerm2 saves the new layout.
+- Applied on `mac-studio` the same day. Lessons: `12-macos-prefs` had never run there, so
+  `OpenTmuxWindowsIn` was unset; a repo change to a `defaults` setting does nothing until the
+  feature (or the `defaults write` line) runs on each machine. Clear `@origins` (saved window
+  positions) along with `@affinities`. `tmux.conf` now sets `aggressive-resize off` explicitly,
+  so `tmux source-file ~/.tmux.conf` repairs servers on other machines still running with it on.
 
 ### 2026-11-04 — `qpdf` for course-data's PDF builds (Claude Opus 5.5 / Claude Code)
 
