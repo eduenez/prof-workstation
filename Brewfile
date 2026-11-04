@@ -57,6 +57,7 @@ brew "djvulibre"         # DjVu support
 # ── LaTeX and typesetting ─────────────────────────────────────────────
 cask "mactex-no-gui"     # full TeX Live without GUI apps
 brew "pandoc"
+brew "qpdf"              # course-data bin/pdf-install: skip content-identical PDF rebuilds
 brew "gnuplot"
 brew "asymptote"
 brew "texlab"            # LaTeX LSP for Emacs + VS Code

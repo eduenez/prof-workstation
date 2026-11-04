@@ -345,6 +345,17 @@ machine (MacPorts). The `dotfiles/` are adapted from `~/.zshrc`, `~/.zprofile`,
   restores it on every attach. To reset it, detach, then `tmux set -u -t <session> @affinities`.
   Alternatively, drag the tabs together while attached; iTerm2 saves the new layout.
 
+### 2026-11-04 — `qpdf` for course-data's PDF builds (Claude Opus 5.5 / Claude Code)
+
+- `course-data`'s `make assignments` now builds each problem-set PDF aside and installs it with
+  `bin/pdf-install`, which compares old and new via `qpdf` (decompressed, with xdvipdfmx's random
+  font-subset tags, dates, `/ID` and xref offsets normalized) and keeps the tracked file when only
+  build noise differs. Without it, mtime-triggered rebuilds (e.g. after a pull touching
+  `course-template`'s preamble) showed up as modified PDFs in `git status`.
+- Added `qpdf` to `Brewfile` and `lists/apt-packages.txt`. Without `qpdf` the script still works
+  but always replaces the file, so the spurious diffs return. The MacPorts machines already have
+  it (`port install qpdf` if one doesn't).
+
 ## Architecture
 
 ```

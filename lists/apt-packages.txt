@@ -60,6 +60,7 @@ djvulibre-bin
 # ── LaTeX / typesetting ───────────────────────────────────────────────
 texlive-full
 pandoc
+qpdf
 gnuplot
 asymptote
 ghostscript
