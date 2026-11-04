@@ -3,22 +3,29 @@
 ;;   Caps Lock held with another key                            -> Left Ctrl
 ;;   Shift + Caps Lock held                                     -> Shift+Ctrl (follows from the above)
 ;;   Left Ctrl + Caps Lock                                      -> real Caps Lock toggle
-;; kanata is cross-platform (Windows/macOS/Linux), so this one file could serve every machine.
-;; Test before installing the logon task:  kanata -c kanata.kbd   (Ctrl-C to stop)
+;; Shift+Win+V -> F13, with Shift and Win released (Windows' own Shift+Win+V, "focus a
+;;   notification", never sees it). Ditto's "Activate Ditto" hotkey is set to F13 by pressing
+;;   Shift+Win+V in its shortcut box while kanata runs. Win+V alone still reaches Windows.
+;; No layers, so nothing changes (or gets logged) when Left Ctrl is pressed.
+;; Comments in kanata start with TWO semicolons.
+;; Test:  kanata_windows_gui_winIOv2_x64.exe -c <this file>   (Ctrl-C to stop)
 
 (defcfg
-  process-unmapped-keys yes
+  ;; kanata must see the other keys to tell "Caps tapped" from "Caps held with a key".
+  ;; keypad Enter (kanata name: kprt) is left untouched: kanata cannot track it on Windows (beep + balloon).
+  process-unmapped-keys (all-except kprt)
+  ;; tray build: don't look for a per-layer tray icon (avoids "icon_0_key" warnings)
+  icon-match-layer-name no
 )
 
-(defsrc caps lctl)
+(defsrc caps v)
 
 (defalias
-  ;; tap = esc; becomes lctrl as soon as another key is pressed, or after 1 s held
-  cap  (tap-hold-press 200 1000 esc lctl)
-  ;; while Left Ctrl is held, Caps Lock sends a plain Caps Lock with Ctrl released
-  ctl  (multi lctl (layer-while-held lock))
-  rcap (unmod caps)
+  ;; fork: if Left Ctrl is already held, Caps Lock is a plain Caps Lock (with Ctrl released);
+  ;; otherwise tap = esc, and it becomes Left Ctrl as soon as another key is pressed or after 1 s
+  cap (fork (tap-hold-press 200 1000 esc lctl) (unmod caps) (lctl))
+  ;; v: if a Win key is held AND a Shift key is held -> F13 (modifiers released); otherwise plain v
+  v   (fork v (fork v (unmod f13) (lsft rsft)) (lmet rmet))
 )
 
-(deflayer base  @cap  @ctl)
-(deflayer lock  @rcap _)
+(deflayer base @cap @v)

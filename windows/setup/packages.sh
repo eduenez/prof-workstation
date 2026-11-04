@@ -5,12 +5,14 @@
 #   M:\Eduardo\repos\prof-workstation\windows\setup\packages.cmd                 (dry run: checks every id)
 #   M:\Eduardo\repos\prof-workstation\windows\setup\packages.cmd --apply
 #   M:\Eduardo\repos\prof-workstation\windows\setup\packages.cmd --apply msys2   (only some sections)
-# Sections, in order: remove apps msys2 kanata sync emacs wsl
+# Sections, in order: remove apps msys2 kanata sync syncthing emacs wsl
 #   remove  preinstalled Store apps in appx-remove.txt
 #   apps    winget-machine.txt, always --scope machine (never falls back to a per-user install)
 #   msys2   pacman update + msys2-packages.txt (needs MSYS2 from "apps")
-#   kanata  kanata (tray build) + kanata.kbd + a sign-in task (test kanata.kbd by hand first)
-#   sync    rename the old sync folders under M:\Eduardo\synchro, then winget-sync.txt
+#   kanata  kanata (tray build) + kanata.kbd + a sign-in task with admin rights
+#           (section kanata-user instead: same, without admin rights)
+#   sync    winget-sync.txt (Dropbox, Google Drive); sync roots were moved by hand (see section)
+#   syncthing  sign-in task for Syncthing (no console, no browser); pairing is manual (PLAN.md Phase 7)
 #   emacs   native Emacs wired to the shared elisp repo: Developer Mode (symlinks without admin),
 #           clone eduenez/elisp, retire the old ~/.emacs and ~/.emacs.d link, Start-menu shortcut
 #   wsl     Ubuntu 26.04 LTS, stored on M:\WSL\Ubuntu-26.04
@@ -24,7 +26,7 @@ export MSYS_NO_PATHCONV=1 MSYS2_ARG_CONV_EXCL='*'
 
 APPLY=false
 [[ ${1:-} == --apply ]] && { APPLY=true; shift; }
-SECTIONS=${*:-"remove apps msys2 kanata sync emacs wsl"}
+SECTIONS=${*:-"remove apps msys2 kanata sync syncthing emacs wsl"}
 HERE=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 LOGDIR=/c/ProgramData/dalekanium/logs
 LOG="$LOGDIR/packages-$(date +%Y%m%d-%H%M%S).log"
@@ -47,6 +49,17 @@ hdr()  { printf '\n== %s\n' "$*"; }
 list() { sed -e 's/#.*//' -e 's/[[:space:]]*$//' -e '/^$/d' "$HERE/$1"; }   # ids from a list file
 ps()   { powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command "$1" </dev/null; }
 WG=(--accept-package-agreements --accept-source-agreements --disable-interactivity)
+
+# logon_task NAME EXE ARGS ELEVATED(yes|no): run EXE at Eduardo's sign-in, forever.
+# Not schtasks.exe /create: that gives every task a 72-hour time limit, after which Windows
+# kills it (kanata and Syncthing must run for weeks). Also: run on battery, one instance only.
+logon_task() {   # optional 5th argument: working directory (default: the program's own folder)
+    local lvl=Limited; [[ $4 == yes ]] && lvl=Highest
+    local wd=${5:-}
+    [[ -z $wd ]] && wd=${2%\\*}             # the program's folder (strip "\name.exe")
+    echo "    run level: $lvl; working directory: $wd"
+    run ps "\$a = New-ScheduledTaskAction -Execute '$2' -Argument '$3' -WorkingDirectory '$wd'; \$t = New-ScheduledTaskTrigger -AtLogOn -User \$env:USERNAME; \$s = New-ScheduledTaskSettingsSet -ExecutionTimeLimit ([TimeSpan]::Zero) -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -MultipleInstances IgnoreNew; \$p = New-ScheduledTaskPrincipal -UserId \$env:USERNAME -LogonType Interactive -RunLevel $lvl; Register-ScheduledTask -TaskPath '\\dalekanium\\' -TaskName '$1' -Action \$a -Trigger \$t -Settings \$s -Principal \$p -Force | Out-Null"
+}
 
 winget_machine() {   # winget_machine LISTFILE
     local id
@@ -101,46 +114,64 @@ fi
 # winget has the tray-icon build (jtroo.kanata_gui): same engine, no console window, and a
 # tray menu to reload or quit. It is a "portable" package: winget puts it under
 # C:\Program Files\WinGet and adds a kanata_gui command to PATH (new cmd window needed).
-if want kanata; then
+if want kanata || want kanata-user; then
     hdr "kanata (tray build jtroo.kanata_gui); test first by hand"
     if ! $APPLY; then
         winget.exe show -e --id jtroo.kanata_gui --accept-source-agreements </dev/null >/dev/null 2>&1 \
             && echo "  ok       jtroo.kanata_gui" || echo "  UNKNOWN  jtroo.kanata_gui"
-        echo "  would: install it machine-wide, copy kanata.kbd to C:\\ProgramData\\dalekanium,"
+        echo "  would: install it machine-wide; the task reads kanata.kbd from this repo folder,"
         echo "         create the sign-in task 'dalekanium\\kanata' (highest privileges, so it also works in admin windows)"
     else
         winget.exe list -e --id jtroo.kanata_gui </dev/null >/dev/null 2>&1 \
             || run winget.exe install -e --id jtroo.kanata_gui --scope machine "${WG[@]}"
-        run cp "$HERE/kanata.kbd" /c/ProgramData/dalekanium/kanata.kbd
-        KEXE=$(where.exe kanata_gui 2>/dev/null | head -1 | tr -d '\r')
+        # the task reads kanata.kbd straight from the repo: no stale copy can linger in ProgramData
+        KCFG=$(cygpath -w "$HERE/kanata.kbd")
+        # the real program file, not winget's Links shortcut (the task crashed via the shortcut)
+        # the package holds several builds; use the plain tray build (the one tested by hand),
+        # not e.g. "..._cmd_allowed_..."
+        KEXE=$(find /c/Program\ Files/WinGet/Packages -maxdepth 3 -iname 'kanata_windows_gui_winIOv2_x64.exe' 2>/dev/null | head -1)
         [[ -z $KEXE ]] && KEXE=$(ls /c/Program\ Files/WinGet/Links/kanata*.exe 2>/dev/null | head -1)
-        [[ -z $KEXE ]] && KEXE=$(find /c/Program\ Files/WinGet/Packages -maxdepth 3 -iname 'kanata*.exe' 2>/dev/null | head -1)
         [[ $KEXE == /* ]] && KEXE=$(cygpath -w "$KEXE")
         if [[ -z $KEXE ]]; then
             echo "  !! kanata_gui.exe not found; open a new cmd and re-run this section"; FAILED+=("kanata: exe not found")
         else
-            run schtasks.exe /create /tn 'dalekanium\kanata' /sc onlogon /rl highest /f \
-                /tr "\"$KEXE\" -c C:\\ProgramData\\dalekanium\\kanata.kbd"
+            # KANATA_ELEVATED=no (set in cmd before packages.cmd) runs it without admin rights:
+            # then remapping does not reach windows that run as administrator
+            ELEV=${KANATA_ELEVATED:-yes}; want kanata-user && ELEV=no   # section "kanata-user" = no admin rights
+            logon_task kanata "$KEXE" "-c $KCFG" "$ELEV"    # path has no spaces
             echo "  starts at each sign-in; start it now with: schtasks /run /tn dalekanium\\kanata"
         fi
     fi
 fi
 
-# ── sync clients, after freeing M:\Eduardo\synchro ─────────────────────
+# ── sync clients ───────────────────────────────────────────────────────
+# Folder layout (decided 2026-11-03): work and third-party sync roots live OUTSIDE the home
+# directory, at the root of M:  —  M:\OneDrive - University of Texas at San Antonio (UTSA work
+# account), M:\private (old Tresorit copy). M:\Eduardo\synchro is now empty and reserved for
+# Syncthing. Only the clients are installed here; signing in is manual (see the notes printed).
 if want sync; then
-    hdr "old sync folders -> new places (nothing deleted), then sync clients (winget-sync.txt)"
-    S=/m/Eduardo/synchro
-    if [[ -d $S && ! -e /m/Eduardo/synchro-legacy ]]; then
-        for od in "$S"/OneDrive*; do [[ -d $od ]] && run mv -n "$od" /m/Eduardo/; done
-        [[ -d $S/private ]] && run mv -n "$S/private" /m/Eduardo/Tresorit-old
-        run mv -n "$S" /m/Eduardo/synchro-legacy
-        echo "  M:\\Eduardo\\synchro is now free for Syncthing; .emacs.d still points into synchro-legacy until the Emacs setup"
-    else
-        echo "  already done (or no old synchro folder)"
-    fi
+    hdr "sync clients (winget-sync.txt); folders already moved by hand"
     winget_machine winget-sync.txt
-    echo "  OneDrive (UTSA): sign in, Change location -> M:\\Eduardo -> 'Use this location'"
-    echo "  Tresorit (manual install, not in winget): sync into a new, empty M:\\Eduardo\\Tresorit; compare with Tresorit-old afterwards"
+    echo "  Dropbox: rename the old local M:\\Eduardo\\Dropbox first (it still holds pre-prune folders);"
+    echo "           sign in, Advanced settings -> location M:\\Eduardo, keep files available offline"
+    echo "  Google Drive: Settings -> Google Drive -> Mirror files -> M:\\Eduardo\\GoogleDrive"
+    echo "  OneDrive (UTSA): Change location -> M:\\ (the drive root) -> 'Use this location'"
+    echo "  Tresorit (manual install): sync into a new, empty M:\\Tresorit; compare with M:\\private afterwards"
+fi
+
+# ── Syncthing: started at sign-in, no console window, no browser ───────
+if want syncthing; then
+    hdr "Syncthing sign-in task (pairing is manual: PLAN.md Phase 7)"
+    SEXE=$(where.exe syncthing 2>/dev/null </dev/null | head -1 | tr -d '\r')
+    [[ -z $SEXE ]] && SEXE=$(find /c/Program\ Files/WinGet/Packages -maxdepth 3 -iname 'syncthing.exe' 2>/dev/null | head -1)
+    [[ $SEXE == /* ]] && SEXE=$(cygpath -w "$SEXE")
+    if [[ -z $SEXE ]]; then
+        echo "  !! syncthing.exe not found (section apps installs it)"; $APPLY && FAILED+=("syncthing: exe not found")
+    else
+        echo "  found $SEXE"
+        logon_task syncthing "$SEXE" '--no-console --no-browser' no
+        echo "  start now: schtasks /run /tn dalekanium\\syncthing ; GUI: http://127.0.0.1:8384"
+    fi
 fi
 
 # ── Emacs: native MSYS2 build + the shared elisp repo ──────────────────
@@ -170,14 +201,24 @@ if want wsl; then
     D=${WSL_DISTRO:-Ubuntu-26.04}     # override: set WSL_DISTRO=<name from wsl --list --online>
     hdr "WSL: $D stored on M:\\WSL\\$D"
     ONLINE=$(wsl.exe --list --online 2>&1 </dev/null | tr -d '\0\r')
-    if ! grep -qw -- "$D" <<<"$ONLINE"; then
+    if wsl.exe --list --quiet 2>/dev/null </dev/null | tr -d '\0\r' | grep -qx -- "$D"; then
+        echo "  $D is already installed (wsl --list --verbose)"
+    elif ! grep -qw -- "$D" <<<"$ONLINE"; then
         echo "  UNKNOWN  $D is not offered. 'wsl --list --online' says:"
         sed 's/^/             /' <<<"$ONLINE"
         echo "  Re-run with e.g.:  set WSL_DISTRO=Ubuntu  (in cmd) before packages.cmd"
+        $APPLY && FAILED+=("wsl: $D not offered")
+    elif ! $APPLY; then
+        echo "  ok       $D is offered; would install it to M:\\WSL\\$D"
     else
-        $APPLY || echo "  ok       $D is offered"
         run mkdir -p /m/WSL
-        run wsl.exe --install -d "$D" --location "M:\\WSL\\$D" --no-launch
+        # shown live as well as logged: this downloads several hundred MB
+        echo "  wsl --install -d $D --location M:\\WSL\\$D --no-launch"
+        printf '\n$ wsl --install -d %s\n' "$D" >>"$LOG"
+        wsl.exe --install -d "$D" --location "M:\\WSL\\$D" --no-launch </dev/null 2>&1 | tr -d '\0\r' | tee -a "$LOG"
+        rc=${PIPESTATUS[0]}
+        (( rc == 0 )) || { echo "    !! failed (exit $rc)"; FAILED+=("wsl --install -d $D"); }
+        wsl.exe --list --verbose </dev/null 2>&1 | tr -d '\0\r' | sed 's/^/    /'
     fi
     echo "  then open '$D' once to create the Linux user (eduenez), and run prof-workstation's Linux features inside it"
 fi

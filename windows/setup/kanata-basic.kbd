@@ -1,0 +1,26 @@
+;; windows/setup/kanata-basic.kbd: FALLBACK, identical to kanata.kbd except keypad Enter may beep — Caps Lock "supercharged" (same behaviour as dotfiles/karabiner on the Macs):
+;;   Caps Lock tapped alone (released within 1 s, no other key) -> Esc
+;;   Caps Lock held with another key                            -> Left Ctrl
+;;   Shift + Caps Lock held                                     -> Shift+Ctrl (follows from the above)
+;;   Left Ctrl + Caps Lock                                      -> real Caps Lock toggle
+;; Only Caps Lock is remapped. No layers, so nothing changes (or gets logged) when Left Ctrl is pressed.
+;; Comments in kanata start with TWO semicolons.
+;; Test:  kanata_windows_gui_winIOv2_x64.exe -c <this file>   (Ctrl-C to stop)
+
+(defcfg
+  ;; kanata must see the other keys to tell "Caps tapped" from "Caps held with a key".
+  ;; (the main file excludes keypad Enter; use this one if kanata rejects that setting)
+  process-unmapped-keys yes
+  ;; tray build: don't look for a per-layer tray icon (avoids "icon_0_key" warnings)
+  icon-match-layer-name no
+)
+
+(defsrc caps)
+
+(defalias
+  ;; fork: if Left Ctrl is already held, Caps Lock is a plain Caps Lock (with Ctrl released);
+  ;; otherwise tap = esc, and it becomes Left Ctrl as soon as another key is pressed or after 1 s
+  cap (fork (tap-hold-press 200 1000 esc lctl) (unmod caps) (lctl))
+)
+
+(deflayer base @cap)

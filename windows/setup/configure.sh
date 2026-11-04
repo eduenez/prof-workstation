@@ -27,11 +27,11 @@ if ! net.exe session >/dev/null 2>&1; then
     echo "Run this from an elevated (Run as administrator) cmd or Git Bash." >&2; exit 1
 fi
 $APPLY || echo "DRY RUN — nothing will change. Re-run with --apply."
-$APPLY && { mkdir -p "$LOGDIR"; echo "Logging to $(cygpath -w "$LOG" 2>/dev/null || echo "$LOG")"; }
 
 LOGDIR=/c/ProgramData/dalekanium/logs
 LOG="$LOGDIR/configure-$(date +%Y%m%d-%H%M%S).log"
 FAILED=()
+$APPLY && { mkdir -p "$LOGDIR"; echo "Logging to $(cygpath -w "$LOG" 2>/dev/null || echo "$LOG")"; }
 run() {   # run CMD...: print, and execute when --apply; output and errors go to $LOG
     printf '  %s\n' "$*"
     $APPLY || return 0
@@ -65,11 +65,23 @@ fi
 
 # ── Windows Update: you decide when ────────────────────────────────────
 if want update; then
-    hdr "Windows Update: download automatically, ask before installing, never reboot while signed in, no drivers"
+    hdr "Windows Update: nothing downloads or installs without you; no restart while signed in; drivers yes, firmware/BIOS never"
     reg_dword "$HKLMP\Windows\WindowsUpdate\AU" NoAutoUpdate 0
-    reg_dword "$HKLMP\Windows\WindowsUpdate\AU" AUOptions 3
+    reg_dword "$HKLMP\Windows\WindowsUpdate\AU" AUOptions 2                     # 2 = notify before download and before install
     reg_dword "$HKLMP\Windows\WindowsUpdate\AU" NoAutoRebootWithLoggedOnUsers 1
-    reg_dword "$HKLMP\Windows\WindowsUpdate" ExcludeWUDriversInQualityUpdate 1   # no drivers/firmware/BIOS via WU
+    reg_dword "$HKLMP\Windows\WindowsUpdate\AU" AlwaysAutoRebootAtScheduledTime 0
+    # widest "active hours" Windows allows (18 h), matching the working day 09:00-03:00
+    reg_dword "$HKLMP\Windows\WindowsUpdate" SetActiveHours 1
+    reg_dword "$HKLMP\Windows\WindowsUpdate" ActiveHoursStart 9
+    reg_dword "$HKLMP\Windows\WindowsUpdate" ActiveHoursEnd 3
+    reg_dword "$HKLMP\Windows\WindowsUpdate" ExcludeWUDriversInQualityUpdate 0   # ordinary drivers via WU are fine
+    # ...but never firmware: block installing any driver of the Firmware device class, which is how
+    # Windows Update delivers UEFI/BIOS capsule updates. Lift it only for a deliberate BIOS update.
+    # (gpedit: System > Device Installation > Device Installation Restrictions >
+    #  "Prevent installation of devices using drivers that match these device setup classes")
+    reg_dword "$HKLMP\Windows\DeviceInstall\Restrictions" DenyDeviceClasses 1
+    reg_dword "$HKLMP\Windows\DeviceInstall\Restrictions" DenyDeviceClassesRetroactive 0
+    reg_sz    "$HKLMP\Windows\DeviceInstall\Restrictions\DenyDeviceClasses" 1 '{f2e7dd72-6468-4e36-b6f1-6488f42c1b52}'
     reg_dword "$HKLMP\Windows\WindowsUpdate" DeferFeatureUpdates 1
     reg_dword "$HKLMP\Windows\WindowsUpdate" DeferFeatureUpdatesPeriodInDays 180
     reg_dword "$HKLMP\Windows\DeliveryOptimization" DODownloadMode 0           # no peer-to-peer uploading
@@ -89,7 +101,9 @@ if want privacy; then
     reg_dword "$HKLMP\Windows\WindowsCopilot" TurnOffWindowsCopilot 1
     reg_dword "$HKLMP\Windows\WindowsAI" DisableAIDataAnalysis 1                # Recall snapshots
     reg_dword "$HKLMP\Windows\WindowsAI" AllowRecallEnablement 0
-    reg_dword "$HKLMP\Dsh" AllowNewsAndInterests 0                              # Widgets
+    # Widgets: reg.exe gets "Access is denied" on this key (User Choice Protection Driver blocks
+    # reg.exe/PowerShell here). Set it in gpedit.msc instead: Computer Configuration > Administrative
+    # Templates > Windows Components > Widgets > Allow Widgets = Disabled (done on dalekanium 2026-11-02).
     reg_dword "$HKCUP\Windows\Explorer" DisableSearchBoxSuggestions 1           # no Bing results in Start search
     # OneDrive: block the PERSONAL account and folder "backup"; the UTSA work account keeps working
     reg_dword 'HKLM\SOFTWARE\Policies\Microsoft\OneDrive' DisablePersonalSync 1
@@ -148,6 +162,8 @@ fi
 if want shell; then
     hdr "Explorer and taskbar"
     run reg.exe add 'HKCU\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32' /ve /t REG_SZ /d "" /f   # classic right-click menu
+    reg_dword 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel' '{20D04FE0-3AEA-1069-A2D8-08002B30309D}' 0   # "This PC" on the desktop
+    # (Win+V stays Windows' clipboard/emoji panel; Shift+Win+V is redirected to Ditto by kanata)
     reg_dword "$ADV" Hidden 1
     reg_dword "$ADV" ShowSuperHidden 1
     reg_dword "$ADV" HideFileExt 0
