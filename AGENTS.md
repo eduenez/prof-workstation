@@ -324,6 +324,12 @@ machine (MacPorts). The `dotfiles/` are adapted from `~/.zshrc`, `~/.zprofile`,
   does not support (it manages window sizes itself). Removed; tmux's default
   `window-size latest` (≥2.9) already covers the common case. A running server keeps the old
   value until `tmux set -gw aggressive-resize off` (or a restart); `source-file` does not unset it.
+- Next, each tmux window opened as its own iTerm2 window. `OpenTmuxWindowsIn` was unset
+  (default 0, native windows); `12-macos-prefs` now sets it to 1 (tabs in one new window). But
+  it only applies to tmux windows iTerm2 has no saved layout for: iTerm2 stores the layout in
+  the tmux session's `@affinities` option (hex; `sed 's/^a_//' | xxd -r -p` decodes it) and
+  restores it on every attach. To reset it, detach, then `tmux set -u -t <session> @affinities`.
+  Alternatively, drag the tabs together while attached; iTerm2 saves the new layout.
 
 ## Architecture
 

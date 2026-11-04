@@ -58,6 +58,14 @@ _prefs_misc() {
     defaults write com.apple.LaunchServices LSQuarantine -bool false
 }
 
+_prefs_iterm2() {
+    # tmux -CC: open a session's tmux windows as tabs of one new iTerm2
+    # window (0 = one native window each, the default; 2 = tabs in the
+    # window you attached from).  Only for tmux windows iTerm2 has no saved
+    # layout for: it stores one per tmux session in the @affinities option.
+    defaults write com.googlecode.iterm2 OpenTmuxWindowsIn -int 1
+}
+
 _restart_ui() {
     info "Restarting Finder and Dock..."
     killall Finder 2>/dev/null || true
@@ -69,6 +77,7 @@ run_step "Keyboard"    _prefs_keyboard
 run_step "Dock"        _prefs_dock
 run_step "Screenshots" _prefs_screenshots
 run_step "Misc"        _prefs_misc
+run_step "iTerm2"      _prefs_iterm2
 _restart_ui
 
 summary_report
