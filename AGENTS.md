@@ -317,6 +317,14 @@ machine (MacPorts). The `dotfiles/` are adapted from `~/.zshrc`, `~/.zprofile`,
 - Not automated in `12-macos-prefs` on purpose: Power Nap is a per-machine trade-off (desktops
   on AC may want it), and it needs sudo.
 
+### 2026-11-04 — `aggressive-resize` removed from `tmux.conf` (Claude Opus 5.5 / Claude Code)
+
+- `tmux -CC attach` in iTerm2 refused to run: "aggressive tmux resizing is turned on". The
+  2026-10-18 tuning had added `setw -g aggressive-resize on`, which iTerm2's tmux integration
+  does not support (it manages window sizes itself). Removed; tmux's default
+  `window-size latest` (≥2.9) already covers the common case. A running server keeps the old
+  value until `tmux set -gw aggressive-resize off` (or a restart); `source-file` does not unset it.
+
 ## Architecture
 
 ```
