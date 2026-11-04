@@ -11,13 +11,16 @@ cat <<'CHECKLIST'
 
   The following steps require manual action.
 
-  [ ] 1. SSH keys
-          Copy ~/.ssh/id_* and ~/.ssh/config from the old machine.
-          chmod 600 ~/.ssh/id_*  &&  chmod 644 ~/.ssh/*.pub
+  [ ] 1. Bitwarden + SSH agent
+          Install the Bitwarden desktop app, log in, and enable its SSH agent
+          (Settings → SSH agent). SSH keys live in the vault, not in ~/.ssh;
+          zprofile and ssh_config already point at ~/.bitwarden-ssh-agent.sock.
+          Check:  ssh -T git@github.com
 
   [ ] 2. GitHub CLI
-          gh auth login
-          (Required for Copilot in Emacs and VS Code.)
+          gh auth login -h github.com --git-protocol ssh --web --skip-ssh-key
+          (SSH: git remotes use the Bitwarden key, already on GitHub.
+           Required for Copilot in Emacs and VS Code.)
 
   [ ] 3. Google Cloud
           gcloud auth login
@@ -26,13 +29,13 @@ cat <<'CHECKLIST'
   [ ] 4. Emacs Copilot
           Launch Emacs → M-x copilot-login
 
-  [ ] 5. API keys (retrieve from LastPass; add to ~/.zshrc.local)
+  [ ] 5. API keys (retrieve from Bitwarden; add to ~/.zshrc.local)
           export ANTHROPIC_API_KEY=...
           export OPENAI_API_KEY=...
           export GEMINI_API_KEY=...
           export GOOGLE_CLOUD_PROJECT=...
 
-  [ ] 6. LastPass browser extension
+  [ ] 6. Bitwarden browser extension
           Chrome Web Store or Firefox Add-ons.
 
   [ ] 7. Ollama models

@@ -35,7 +35,7 @@ tools, fonts, and GUI applications.
 | `pkgmgr` | Homebrew (macOS) / apt update (Linux) |
 | `brew-bundle` | All Homebrew packages, casks, and fonts via `Brewfile` |
 | `apt-pkgs` | Equivalent apt packages (Linux / WSL) |
-| `dotfiles` | Shell config, Git, tmux, Ghostty, SSH skeleton, Karabiner |
+| `dotfiles` | Shell config, Git, tmux, Ghostty, SSH skeleton, Karabiner, Claude Code keybindings + skills |
 | `emacs` | Emacs.app + `elisp` repo clone + elpaca bootstrap |
 | `vscode` | VS Code + extension list |
 | `python` | `uv` — Python versions, virtualenvs, and packages |
@@ -244,11 +244,12 @@ packages.
 The `13-secrets.sh` module prints a checklist of steps that require manual
 action — credentials are never stored in or injected by this repository:
 
-1. Copy SSH private keys from the old machine
-2. `gh auth login`
+1. Bitwarden desktop app with its SSH agent enabled (SSH keys live in the
+   vault, not in `~/.ssh`)
+2. `gh auth login` (git protocol: SSH)
 3. `gcloud auth login`
 4. `M-x copilot-login` inside Emacs
-5. Retrieve API keys (OpenAI, Anthropic, etc.) from LastPass and add to
+5. Retrieve API keys (OpenAI, Anthropic, etc.) from Bitwarden and add to
    `~/.zshrc.local` as `export` statements (this file — like
    `~/.zprofile.local` for machine-specific `PATH` — is not managed by this
    repo and will not be overwritten by re-running `dotfiles`)

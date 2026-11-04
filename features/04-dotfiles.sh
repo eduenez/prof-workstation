@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 04-dotfiles — Oh My Zsh, zshrc, zprofile, gitconfig, tmux, Ghostty, SSH (+ Bitwarden agent on Linux), Karabiner, MC.
+# 04-dotfiles — Oh My Zsh, zshrc, zprofile, gitconfig, tmux, Ghostty, latexmkrc, Claude Code (keybindings + skills), SSH (+ Bitwarden agent on Linux), Karabiner, MC.
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/lib/common.sh"
 
 DOTFILES="$REPO_DIR/dotfiles"
@@ -76,6 +76,20 @@ _deploy_ghostty() {
 
 _deploy_latexmkrc() {
     _deploy_link "$DOTFILES/latexmkrc" "$HOME/.latexmkrc"
+}
+
+# Claude Code: keybindings and personal skills. Each skill is linked as its own
+# directory, never ~/.claude/skills wholesale: that directory also holds
+# entries other tools manage (e.g. `synced/`), which must stay out of this repo.
+# A new skill is picked up by re-running `bash install.sh dotfiles`.
+_deploy_claude() {
+    mkdir -p "$HOME/.claude/skills"
+    _deploy_link "$DOTFILES/claude/keybindings.json" "$HOME/.claude/keybindings.json"
+    local skill
+    for skill in "$DOTFILES"/claude/skills/*/; do
+        skill="${skill%/}"
+        _deploy_link "$skill" "$HOME/.claude/skills/$(basename "$skill")"
+    done
 }
 
 _deploy_ssh_config() {
@@ -210,6 +224,7 @@ run_step "gitconfig"          _deploy_gitconfig
 run_step "tmux.conf"          _deploy_tmux
 run_step "Ghostty config"     _deploy_ghostty
 run_step "latexmkrc"          _deploy_latexmkrc
+run_step "Claude Code keybindings + skills" _deploy_claude
 run_step "SSH config template" _deploy_ssh_config
 run_step "ssh rc (agent link)" _deploy_ssh_rc
 run_step "Bitwarden agent socket link" _deploy_bitwarden_sock

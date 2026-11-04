@@ -8,9 +8,9 @@ humans re-reading this later) working on `prof-workstation`.
 ## What this is
 
 A modular, idempotent workstation setup system for **Eduardo Dueñez**
-(mathematics professor / AI researcher, `eduardo@gibran.ai`, org: Gibran) and
-a colleague with an identical software stack. Both users received new Mac
-Studios; this repository automates configuring them from scratch.
+(mathematics professor / AI researcher, `eduardo@gibran.ai`, org: Gibran),
+covering every machine he works on; it automates configuring a new one from
+scratch.
 
 **Old machine:** macOS Apple Silicon, MacPorts, ~1 635 installed ports.
 **New machine:** macOS Apple Silicon (Mac Studio), Homebrew + uv from scratch.
@@ -284,6 +284,20 @@ machine (MacPorts). The `dotfiles/` are adapted from `~/.zshrc`, `~/.zprofile`,
   (`osascript` + System Events, `AXMenuItemCmdChar`/`AXMenuItemCmdModifiers`) needs the Accessibility
   permission for the calling terminal.
 
+### 2026-11-04 — Claude Code keybindings and personal skills (Claude Opus 5.5 / Claude Code)
+
+- New `dotfiles/claude/`: `keybindings.json` (unbinds Ctrl+L, whose default
+  `chat:clearInput` wipes the draft prompt irrecoverably) and `skills/<name>/SKILL.md`
+  for the teaching workflows: `course-problem-set`, `course-exam`, `psc-problem-set`,
+  `publish-problem-set`. They drive `~/repos/course-data`, `teaching/problem-bank`,
+  `teaching/ProblemSolving/ProblemSetsPSC`, `courses` and `psclub`; on a machine without
+  those clones they are inert (they only tell Claude where to read).
+- `04-dotfiles` `_deploy_claude` symlinks `keybindings.json` and **each skill directory
+  individually** into `~/.claude/skills/` — never the directory itself, which also holds
+  tool-managed entries (`synced/`). Edit skills in the repo (or through the symlink;
+  same file); a *new* skill needs `bash install.sh dotfiles` to get its link.
+  `~/.claude/settings.json` is deliberately not managed: per-machine and may hold tokens.
+
 ---
 
 ### 2026-11-01/02 — Windows target begins: dalekanium inventory and reinstall plan (Claude Opus 5.5 / Cowork)
@@ -386,7 +400,7 @@ documented in `lib/common.sh`.
 
 ### Dotfiles via symlinks (except two)
 `zshrc`, `zprofile`, and `tmux.conf` are **symlinked** from `dotfiles/` into
-`$HOME`. Changes to the repo apply immediately on both machines.
+`$HOME`. Changes to the repo apply immediately on every machine (after `git pull`).
 
 `gitconfig` is a **copy** (filled template). `karabiner.json` is also a
 **copy** — Karabiner-Elements modifies it at runtime when settings are changed
@@ -411,7 +425,9 @@ holds interactive things (aliases, `EDITOR`, API keys, installer blocks);
 
 ### Secrets by checklist only
 No credential injection, no PM CLI. `13-secrets.sh` only prints a checklist.
-LastPass + macOS Keychain is sufficient for both users.
+Bitwarden (passwords, and SSH keys via its SSH agent) + macOS Keychain is
+sufficient. (Formerly LastPass; `SetupNewComputer.md` is a historical
+transcript and still says so.)
 
 ### `gitconfig.template` with `{{NAME}}` / `{{EMAIL}}`
 The template is filled in at install time by `04-dotfiles.sh`, which reads from
