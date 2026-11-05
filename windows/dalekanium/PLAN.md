@@ -4,19 +4,20 @@ Handoff document: everything a later session (human or agent) needs to resume th
 Companion files in this directory: `review.md` (the agreed as-is → to-be decisions, item by item).
 Scripts: `../inventory.sh` (read-only capture), `../prewipe-backup.sh` (safety copies before the wipe).
 
-## Status (2026-11-03)
+## Status (2026-11-05)
 
-- [x] Git over SSH on dalekanium works (Bitwarden agent via Windows OpenSSH; `url.insteadOf` rewrite)
+- [x] Git over SSH on dalekanium works (Bitwarden agent via Windows OpenSSH; `url.insteadOf` rewrite). Plain `ssh` in Git Bash needs aliases to Windows OpenSSH (see gotchas)
 - [x] Inventory captured: `M:\Eduardo\win-inventory\DALEKANIUM-20261101-*` (2343 is the complete one; 1853 also holds the **driver export**, `drivers\`, ~2 GB)
 - [x] Review done and decisions recorded in `review.md`
 - [x] `delfincito-pc` renamed `dalekanium` throughout `filetree-reorg`
 - [x] Pre-wipe backup (2026-11-02) on the WD Elements: `\dalekanium-prewipe` (81 GB: profile copy, C:\ root folders, WSL tarballs for Leap 15.1 and 15.6) + system image `\WindowsImageBackup\DALEKANIUM`. The profile copy skipped 153 in-use files; the image covers them
 - [x] Install media; one-page walk-through `walkthrough.pdf` (source `walkthrough.html`)
 - [x] Phases 2–4: Windows 11 Pro installed 2026-11-02 (Chrome, VS Code, Claude desktop installed by hand)
-- [x] Phase 5 applied (`windows/setup/configure.cmd`; Widgets via gpedit). Terminal profile fragment still not picked up
-- [~] Phase 6 (`windows/setup/packages.cmd`): apps, MSYS2, kanata (sign-in task), WSL Ubuntu-26.04, Bitdefender, TeX Live, NVIDIA driver done; sync clients, Tresorit, Emacs/elisp, Ghostscript pending
-- [~] Phase 7: Syncthing installed + sign-in task; seed archives made on the MacBook (`H:\dalekanium-seed`); extraction, Bitdefender exceptions, pairing pending; Restic + nightly wake job not started
-- [ ] Afterwards: update `filetree-reorg` docs where they still describe dalekanium as "Windows 10, sleeps after active use" and assume `%USERPROFILE%\synchro` (it is `M:\Eduardo\synchro`)
+- [x] Phase 5 applied (`windows/setup/configure.cmd`; Widgets via gpedit). Default apps turned out to be a manual step (2026-11-04, see gotchas). Terminal profile fragment still not picked up
+- [~] Phase 6 (`windows/setup/packages.cmd`): apps, MSYS2, kanata (sign-in task), WSL Ubuntu-26.04, Bitdefender, TeX Live, NVIDIA driver done; **Google Drive done** (mirror of `M:\Eduardo\GoogleDrive`, 2026-11-05); OneDrive (UTSA), Dropbox, Emacs/elisp, Ghostscript pending; **Tresorit skipped** (`secreto` supersedes it)
+- [x] M: cleanup (side project below): snapshot on W:, ~140 GB deleted, games/ROMs moved to G: (2026-11-04/05)
+- [~] Phase 7: **Syncthing paired and converged 2026-11-05** (Studio, hub, macbook-gai; `synchro` + `secreto` Send & Receive); `macbook-utsa`, `chatedg-probook` optional, pair when at hand. **Restic + nightly wake job next**
+- [ ] Afterwards: update `filetree-reorg` docs where they still describe dalekanium as "Windows 10, sleeps after active use" and assume `%USERPROFILE%\synchro` (it is `M:\Eduardo\synchro`) — Syncthing notes updated 2026-11-05
 
 ## Machine facts that drive the plan
 
@@ -68,26 +69,36 @@ Bitdefender Total Security (no VPN), Surfshark, browsers, sync apps (OneDrive UT
 
 Sync roots (done by hand 2026-11-03): personal sync folders live in `M:\Eduardo` (Dropbox, Google Drive, `private` = old Tresorit copy, a fresh Tresorit folder, and `synchro`, empty and reserved for Syncthing). The **UTSA work OneDrive is the one exception**: `M:\OneDrive - University of Texas at San Antonio`, outside the home directory, OneDrive location = `M:\`. The old local Dropbox folder is kept as the symlink `M:\Eduardo\Dropbox-old-local` (pre-prune content, incl. the old unencrypted `_private_sensitive`): Dropbox must sign in to a fresh folder, never this one.
 
-Manual installs (not in winget or licence-bound): Bitdefender, Microsoft 365 (UTSA), NVIDIA driver only, TeX Live, **Ghostscript** (ghostscript.com), **Tresorit** (tresorit.com; after the folder renames), WhatsApp and All the Unicode (Store), StartAllBack (optional), UTSA VPN. winget ids are case-sensitive with `-e` (`SamHocevar.WinCompose`).
+Manual installs (not in winget or licence-bound): Bitdefender, Microsoft 365 (UTSA), NVIDIA driver only, TeX Live, **Ghostscript** (ghostscript.com), Tresorit (skipped for now: `secreto` supersedes it; `M:\Eduardo\private` is the frozen old copy), WhatsApp and All the Unicode (Store), StartAllBack (optional), UTSA VPN. winget ids are case-sensitive with `-e` (`SamHocevar.WinCompose`).
+
+#### Sync clients: rules learned the hard way (Google Drive done 2026-11-05)
+Goal for every client: the folder on M: is a **local clone**, every file **kept on disk** (never cloud-only), and the first sync **starts from the files already there** (seeded) instead of downloading everything again.
+- **Clean the seed first.** A folder left by an older client holds the client's own stand-ins, which a new client would upload as real files. Google Drive's were `.gdoc`/`.gsheet`/… link files, `desktop.ini`, and **Windows shortcuts into the old virtual drive `G:\.shortcut-targets-by-id\…`, some disguised as `.pdf`/`.flac`** (218 bytes). They were moved aside (not deleted) to `M:\Eduardo\win-inventory\gdrive-seed-stubs` with lists; 18 of them are Drive shortcuts to items shared by others — the only things that stay cloud-only.
+- **Google Drive**: before signing in, `HKLM\SOFTWARE\Google\DriveFS` `DefaultMountPoint`=`X:` (its virtual drive; `G:` is the FreeAgent) and `DefaultWebBrowser`=chrome.exe (sign-in never opens Edge). At sign-in **untick every "back up this computer" folder** — "Back up" uploads a one-way copy into Drive's *Computers* section (happened once; the partial copy was deleted online). Then Preferences → My Drive syncing options → **Mirror files** → `M:\Eduardo\GoogleDrive`: it reused the seed (a couple of minutes, no `(1)` duplicates, no nested `My Drive` folder). Docs/Sheets are always link files; that is inherent.
+- **OneDrive (UTSA)**: at sign-in choose **"No, sign in to this app only"** and untick "Allow my organisation to manage my device" (otherwise the PC is registered with UTSA's tenant). Location `M:\` so the folder is `M:\OneDrive - University of Texas at San Antonio` (pre-seeded; check for orphaned cloud placeholders first). Files On-Demand cannot be switched off any more: right-click the root → **Always keep on this device**. `KFMBlockOptIn` (Phase 5) stops it from moving Desktop/Documents/Pictures.
+- **Dropbox**: a fresh `M:\Eduardo\Dropbox` (never `Dropbox-old-local`); new files "available offline".
 
 ### 7. Backup node (per `filetree-reorg/design/syncthing_setup.md` and `restic_backup.md`, Phase 4)
-Syncthing: pair with the mesh (Studio accepts the pending device), folders `synchro` and `secreto` at `M:\Eduardo\…`, versioning Simple/keep 3, `Thumbs.db` sweep task. Restic: independent repo on `F:`, own password, run by a Task Scheduler job that **wakes the PC**, holds it awake, waits for Syncthing to be idle, backs up, then sleeps it again. Bitdefender: exclude `synchro`, `secreto`, the Restic repo; allow Syncthing through its firewall. Restore test before calling it done.
+Syncthing: pair with the mesh (Studio accepts the pending device), folders `synchro` and `secreto` at `M:\Eduardo\…`, versioning Simple/keep 3, `Thumbs.db` sweep task. Restic: independent repo on `W:` (WD Elements), own password, run by a Task Scheduler job that **wakes the PC**, holds it awake, waits for Syncthing to be idle, backs up, then sleeps it again. Bitdefender: exclude `synchro`, `secreto`, the Restic repo; allow Syncthing through its firewall. Restore test before calling it done. Back up `synchro`, `secreto`, `GoogleDrive`, `private` (frozen, in no other local backup) and the parts of `M:\Eduardo` that are in no sync service.
 
-## Side project: M: cleanup (started 2026-11-03)
+**Syncthing, as done 2026-11-05** (details in `filetree-reorg/design/syncthing_setup.md`): seeded from 7z archives; Bitdefender exceptions; DK added the Studio and hub by ID (no Introducer, no Auto Accept); the Studio was reached through an SSH tunnel to its GUI (`ssh -L 8385:127.0.0.1:8384 …`), the hub likewise (`ssh -L 8386:127.0.0.1:8384 admin@167.233.240.102`); folders accepted from the Studio's offer as **Receive Only**, reviewed, reverted, then switched to Send & Receive. `macbook-gai` paired directly (same LAN). DK's `synchro\.stignore` adds `(?d)Icon?` (macOS folder-icon files `Icon\r`; Windows cannot store the CR, 7-Zip had extracted them as `Icon_`) and one `(?d)/path` line per symlink (Syncthing does not sync symlinks on Windows).
 
-M: (466 GB SSD) nearly filled once `synchro` + `secreto` were seeded; Google Drive (~100 GB) still has to fit.
-Rules, same spirit as `filetree-reorg`: nothing is deleted until a verified copy exists; decisions go in a
-reviewed manifest; the executor is dry-run by default. Scripts in `cleanup/`.
+## Side project: M: cleanup (2026-11-03 → 05, done)
 
-1. **Report** (read-only): `bash cleanup/m-usage.sh` → `M:\Eduardo\win-inventory\m-usage-<date>\`.
-2. **Safety snapshot**: `cleanup\m-snapshot.cmd` → `W:\M-Eduardo-snapshot-2026-11` (everything in `M:\Eduardo`
-   except the synced folders). Needed because `W:\eduardo` is an **older, partial** copy of unknown date, and the
-   pre-wipe backup covered C:, not M:.
-3. **Prune manifest**: per top-level entry (then deeper where needed) — `delete` (old installers, ISOs, junk,
-   files whose content already exists in `synchro`), `keep`, or `copy-to-G`. Reviewed by the operator.
-4. **Second copy** of everything kept that is not in a synced folder → `G:` (FreeAgent, USB 2, 144 GB free).
-5. **Execute** the deletions on M: (dry run first), then place Google Drive (mirror into `M:\Eduardo\GoogleDrive`,
-   or stream mode if space stays tight).
+M: (466 GB SSD) nearly filled once `synchro` + `secreto` were seeded; Google Drive (~100 GB) still had to fit.
+Rules: nothing deleted until a verified copy exists; decisions in a reviewed manifest; executor dry-run by default.
+Scripts in `cleanup/`; outputs (private file names) in `M:\Eduardo\win-inventory\` (outside git).
+
+1. `cleanup/m-usage.sh` (report) and `cleanup/dupes-vs-synchro.sh` (files whose content is already in `synchro`).
+2. `cleanup\m-snapshot.cmd` → `W:\M-Eduardo-snapshot-2026-11` (all of `M:\Eduardo` except synced folders; 303 GB,
+   2026-11-04). Robocopy exits ≥8 on any failed file, so the `.snapshot-complete` marker was written by hand after the
+   103 failures were reviewed (Dropbox cache, old Cygwin X dotfiles, 3 inventory copies of a settings file).
+3. `cleanup/build-manifest.sh` → `cleanup/manifest.tsv` + `summary.txt`; overrides in `cleanup/overrides.tsv`.
+4. `cleanup/apply-manifest.sh` (dry run; `--apply delete`; `--apply move-G`): ~140 GB deleted (installers, ISOs,
+   old VMs, obsolete software, duplicates of `synchro`), ~87 GB of games/ROMs moved to `G:\M-Eduardo` with SHA-256
+   verification. It never touches `win-inventory/cleanup` or `win-inventory/dupes-*`.
+   Lessons: one `rm` per file is ~30 files/s in Git Bash (now batched through `xargs`, `-s 20000` max);
+   files carried over from old Cygwin/system ACLs need `takeown` + `icacls /reset` before they can be deleted.
 
 ## Gotchas already found
 
@@ -95,9 +106,9 @@ reviewed manifest; the executor is dry-run by default. Scripts in `cleanup/`.
 
 - **Computer name**: setup assigned `DESKTOP-379STP2`; rename to `DALEKANIUM` (configure.sh `name`), it matters for Syncthing labels and Restic host tags.
 - **`winget` installs Chrome/VS Code per-user by default.** Always pass `--scope machine` (and `-e --id`); if a package has no machine installer, download the vendor's system-wide installer.
-- **Edge grabs file types.** In Settings → Default apps, the "Microsoft Edge" entry's button *assigns* every type it can open to Edge; it does not open Edge's settings. Fix without mousing through each type: Settings → Default apps → Google Chrome → **Set default** (one click), and the `DefaultAssociationsConfiguration` policy (configure.sh `defaults`) re-asserts Chrome at every sign-in. Edge cannot be uninstalled on a US Windows install without breaking WebView2/updates; neutralise it instead (configure.sh `edge`). Optional: MSEdgeRedirect (open source) sends `microsoft-edge:` links from Start/Widgets/help to the default browser.
+- **Edge grabs file types.** In Settings → Default apps, the "Microsoft Edge" entry's button *assigns* every type it can open to Edge; it does not open Edge's settings. Fix: Settings → Default apps → Google Chrome → **Set default** (one click), then any remaining Edge rows (`.pdf`, `.svg`, `.xml`, `.mht`, FTP, READ). **The `DefaultAssociationsConfiguration` policy does nothing here**: Windows applies it only on domain-joined PCs (found 2026-11-04, when GlobalProtect's "default browser" turned out to be Edge for everything); configure.sh `defaults` now removes it and only points the legacy `HKCR\http(s)\shell\open\command` at Chrome. Edge cannot be uninstalled on a US Windows install without breaking WebView2/updates; neutralise it instead (configure.sh `edge`). Optional: MSEdgeRedirect (open source) sends `microsoft-edge:` links from Start/Widgets/help to the default browser.
 - **Passkey catch-22 in a new Chrome profile.** With no Bitwarden extension yet, a site asking for a passkey falls through to Windows' own dialog ("insert security key"). Order that avoids it: create the Chrome profile **without signing in**, install the Bitwarden extension, unlock Bitwarden, *then* sign in to Google/Claude. In Windows' dialog, "Cancel"/"Use another device" or the site's "Try another way" reach TOTP/password. Recent Windows 11 builds also let a password manager register as a system passkey provider (Settings → Accounts → Passkeys → Advanced options); enable Bitwarden there if it is offered.
-- **kanata from winget** is the tray build `jtroo.kanata_gui`, a portable package: the program is `C:\Program Files\WinGet\Packages\jtroo.kanata_gui_Microsoft.Winget.Source_8wekyb3d8bbwe\kanata_windows_gui_winIOv2_x64.exe`, and the PATH command has that long name, not `kanata_gui`. Keypad Enter makes kanata beep with an error balloon (Windows reports it as plain Enter); it is excluded with `process-unmapped-keys (all-except kpenter)`. A one-off "Unexpected keycode is pressed in kanata but not in Windows … NumLock" balloon after fast Num Lock taps is kanata resynchronising its key state; harmless.
+- **kanata from winget** is the tray build `jtroo.kanata_gui`, a portable package: the program is `C:\Program Files\WinGet\Packages\jtroo.kanata_gui_Microsoft.Winget.Source_8wekyb3d8bbwe\kanata_windows_gui_winIOv2_x64.exe`, and the PATH command has that long name, not `kanata_gui`. Keypad Enter makes kanata beep with an error balloon (Windows reports it as plain Enter); it is excluded with `process-unmapped-keys (all-except kprt)` (the key name is `kprt`, not `kpenter`). A one-off "Unexpected keycode is pressed in kanata but not in Windows … NumLock" balloon after fast Num Lock taps is kanata resynchronising its key state; harmless.
 - **kanata config comments need two semicolons** (`;;`); a single `;` is a parse error. Run the kanata exe from cmd to see its log and errors.
 - **WSL Ubuntu-26.04** installed 2026-11-03 on `M:\WSL\Ubuntu-26.04`, Linux user `eduardo` (the old Leap distro used `eduenez`).
 - **First `wsl --install` asks for a reboot**: it enables the Virtual Machine Platform feature and installs nothing yet; run the same command again after restarting.
@@ -107,6 +118,13 @@ reviewed manifest; the executor is dry-run by default. Scripts in `cleanup/`.
 - **Files on M: are owned by the old installation's account** (a different Windows SID), so git refuses every repo there ("dubious ownership"). Root-cause fix, once, elevated: `icacls M:\Eduardo /setowner Eduardo /T /C /Q`. Same will apply to any other drive carried over from the old install.
 - **Some policy keys refuse `reg.exe` even as admin** ("Access is denied"): Windows 11's User Choice Protection Driver blocks reg.exe/PowerShell on them. Hit on `HKLM\SOFTWARE\Policies\Microsoft\Dsh\AllowNewsAndInterests` (Widgets); set through `gpedit.msc` instead (Widgets → Allow Widgets → Disabled), which also persists it in the local policy file.
 - **Git Bash rewrites `/flags` and `C:\` paths** passed to Windows programs; scripts set `MSYS_NO_PATHCONV=1`.
+
+### Found 2026-11-04/05
+
+- **Git Bash's `ssh` cannot use the Bitwarden agent** (it only knows Unix sockets; Bitwarden serves a Windows named pipe), so `ssh host` asks for a password while `git` works (`core.sshCommand`). Fix in `~/.bashrc`: alias `ssh`, `scp`, `sftp`, `ssh-add`, `ssh-keygen` to `/c/Windows/System32/OpenSSH/*.exe`, sourced from `~/.bash_profile` (which also replaces the old CRLF `~/.profile`). Windows OpenSSH reads `C:\Users\Eduardo\.ssh`, not `M:\Eduardo\.ssh`.
+- **GlobalProtect (UTSA VPN)** uses the default browser for SAML (`HKLM\SOFTWARE\Palo Alto Networks\GlobalProtect\Settings` `default-browser`=`yes`; UTSA's portal allows it), which is why it showed Edge until the default apps were fixed. Its service is `PanGPS` (`net start PanGPS`), the tray app `PanGPA.exe`.
+- **Syncthing on DK**: the red "A socket operation was attempted to an unreachable network" is an IPv6 address being tried (home line has no IPv6); harmless. A file deleted by hand in a Receive Only folder can leave "Locally Changed Items: 1" over an empty list until a restart or the switch to Send & Receive. Keep backups of files **outside** synced folders (a `.stignore.bak` became a "local addition").
+- **This Claude session cannot run Windows commands** (registry, `dism`, `sc`); it reads and writes files in connected folders only. For hands-on Windows administration run Claude Code in a terminal on DK; here, export settings to files under `M:\Eduardo\win-inventory\` and read them.
 
 ### Earlier
 

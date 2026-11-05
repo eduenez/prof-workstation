@@ -5,7 +5,7 @@
 # Run from an ELEVATED cmd (Eduardo's account is an admin, so HKCU below is still his own hive):
 #   M:\Eduardo\repos\prof-workstation\windows\setup\configure.cmd            (dry run)
 #   M:\Eduardo\repos\prof-workstation\windows\setup\configure.cmd --apply
-#   ...configure.cmd --apply edge defaults        (only some sections)
+#   ...configure.cmd --apply edge defaults        (only some sections; "defaults" needs a manual step)
 # or from "Git Bash (admin)":  bash configure.sh [--apply] [sections]
 # Sections: name update privacy edge defaults lockscreen shell input folders power terminal
 # Idempotent: re-running re-applies the same values. Sign out and back in afterwards
@@ -136,13 +136,23 @@ if want edge; then
     reg_dword "$HKLMP\EdgeUpdate" CreateDesktopShortcutDefault 0
 fi
 
-# ── default apps: Chrome for web, enforced at every sign-in ────────────
+# ── default apps: Chrome for web ───────────────────────────────────────
+# Windows applies the DefaultAssociationsConfiguration policy only on domain-joined PCs, and it
+# protects each user's default-app choices from scripts, so on dalekanium (standalone) choosing
+# Chrome is a MANUAL step: Settings -> Apps -> Default apps -> Google Chrome -> "Set default", then
+# fix any remaining Edge rows (.pdf .svg .xml .mht .mhtml .xht .xhtml, FTP, READ). Found 2026-11-04.
+# This section removes the inert policy that earlier runs set, and points the legacy
+# HKCR\http(s)\shell\open\command (read by some older programs instead of the user's choice) at Chrome.
 if want defaults; then
-    hdr "default apps from default-apps.xml (re-applied by Windows at each sign-in)"
-    DEST='C:\ProgramData\dalekanium'
-    run mkdir -p "/c/ProgramData/dalekanium"
-    run cp "$HERE/default-apps.xml" "/c/ProgramData/dalekanium/default-apps.xml"
-    reg_sz "$HKLMP\Windows\System" DefaultAssociationsConfiguration "$DEST\default-apps.xml"
+    hdr "default apps: manual step in Settings (see comment); legacy http/https command -> Chrome"
+    if reg.exe query "$HKLMP\Windows\System" /v DefaultAssociationsConfiguration >/dev/null 2>&1; then
+        run reg.exe delete "$HKLMP\Windows\System" /v DefaultAssociationsConfiguration /f
+    fi
+    CHROME='"C:\Program Files\Google\Chrome\Application\chrome.exe" --single-argument %1'
+    for p in http https; do
+        run reg.exe add "HKLM\SOFTWARE\Classes\$p\shell\open\command" /ve /t REG_SZ /d "$CHROME" /f
+    done
+    echo "  MANUAL: Settings -> Apps -> Default apps -> Google Chrome -> Set default (+ remaining Edge rows)"
 fi
 
 # ── lock screen and sign-in screen: plain, no web content ──────────────

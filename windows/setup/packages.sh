@@ -11,13 +11,13 @@
 #   msys2   pacman update + msys2-packages.txt (needs MSYS2 from "apps")
 #   kanata  kanata (tray build) + kanata.kbd + a sign-in task with admin rights
 #           (section kanata-user instead: same, without admin rights)
-#   sync    winget-sync.txt (Dropbox, Google Drive); sync roots were moved by hand (see section)
+#   sync    winget-sync.txt (Dropbox, Google Drive); signing in and folder choice are manual
 #   syncthing  sign-in task for Syncthing (no console, no browser); pairing is manual (PLAN.md Phase 7)
 #   emacs   native Emacs wired to the shared elisp repo: Developer Mode (symlinks without admin),
 #           clone eduenez/elisp, retire the old ~/.emacs and ~/.emacs.d link, Start-menu shortcut
 #   wsl     Ubuntu 26.04 LTS, stored on M:\WSL\Ubuntu-26.04
 # Not here (manual, see PLAN.md): Bitdefender, Microsoft 365 (UTSA), NVIDIA driver, TeX Live,
-# Ghostscript and Tresorit (not in winget),
+# Ghostscript (not in winget), Tresorit (skipped for now),
 # WhatsApp and All the Unicode (Store), StartAllBack (optional), UTSA VPN.
 # Log: C:\ProgramData\dalekanium\logs\packages-<date-time>.log
 
@@ -145,18 +145,20 @@ if want kanata || want kanata-user; then
 fi
 
 # ── sync clients ───────────────────────────────────────────────────────
-# Folder layout (decided 2026-11-03): work and third-party sync roots live OUTSIDE the home
-# directory, at the root of M:  —  M:\OneDrive - University of Texas at San Antonio (UTSA work
-# account), M:\private (old Tresorit copy). M:\Eduardo\synchro is now empty and reserved for
-# Syncthing. Only the clients are installed here; signing in is manual (see the notes printed).
+# Folder layout: personal sync roots in M:\Eduardo (GoogleDrive, Dropbox, synchro, secreto; private =
+# old Tresorit copy, frozen); the UTSA work OneDrive OUTSIDE the home directory, at
+# M:\OneDrive - University of Texas at San Antonio. Only the clients are installed here; signing in
+# and pointing each client at its (pre-seeded) folder is manual, see PLAN.md "Sync clients".
 if want sync; then
-    hdr "sync clients (winget-sync.txt); folders already moved by hand"
+    hdr "sync clients (winget-sync.txt); sign-in and folder choice are manual (PLAN.md)"
     winget_machine winget-sync.txt
-    echo "  Dropbox: rename the old local M:\\Eduardo\\Dropbox first (it still holds pre-prune folders);"
-    echo "           sign in, Advanced settings -> location M:\\Eduardo, keep files available offline"
-    echo "  Google Drive: Settings -> Google Drive -> Mirror files -> M:\\Eduardo\\GoogleDrive"
-    echo "  OneDrive (UTSA): Change location -> M:\\ (the drive root) -> 'Use this location'"
-    echo "  Tresorit (manual install): sync into a new, empty M:\\Tresorit; compare with M:\\private afterwards"
+    echo "  Google Drive: set HKLM\SOFTWARE\Google\DriveFS DefaultMountPoint=X: and DefaultWebBrowser=chrome.exe"
+    echo "                BEFORE signing in; untick every 'back up this computer' folder; then"
+    echo "                Preferences -> My Drive syncing options -> Mirror files -> M:\Eduardo\GoogleDrive"
+    echo "  OneDrive (UTSA): 'Sign in to this app only' (never let the organisation manage the PC);"
+    echo "                Change location -> M:\ -> use the existing folder; then 'Always keep on this device'"
+    echo "  Dropbox: sign in to a FRESH M:\Eduardo\Dropbox (never Dropbox-old-local); files available offline"
+    echo "  Tresorit: not installed for now (secreto supersedes it)"
 fi
 
 # ── Syncthing: started at sign-in, no console window, no browser ───────

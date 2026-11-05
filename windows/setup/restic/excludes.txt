@@ -1,0 +1,19 @@
+# windows/setup/restic/excludes.txt — case-insensitive (restic --iexclude-file); bare names match at any depth.
+# Sync-client and Syncthing internals
+.stversions
+.tmp.drivedownload
+.tmp.driveupload
+.dropbox.cache
+# Windows junk
+$RECYCLE.BIN
+System Volume Information
+Thumbs.db
+# Rebuildable caches (AppData\Roaming and dev trees)
+Cache
+Code Cache
+GPUCache
+CachedData
+CachedExtensionVSIXs
+Crashpad
+node_modules
+__pycache__
