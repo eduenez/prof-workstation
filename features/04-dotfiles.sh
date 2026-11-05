@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 04-dotfiles — Oh My Zsh, zshrc, zprofile, gitconfig, tmux, Ghostty, latexmkrc, Claude Code (keybindings + skills), SSH (+ Bitwarden agent on Linux), Karabiner, MC.
+# 04-dotfiles — Oh My Zsh, zshrc, zprofile, gitconfig, tmux, Ghostty, latexmkrc, latexindent, Claude Code (keybindings + skills), SSH (+ Bitwarden agent on Linux), Karabiner, MC.
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/lib/common.sh"
 
 DOTFILES="$REPO_DIR/dotfiles"
@@ -76,6 +76,28 @@ _deploy_ghostty() {
 
 _deploy_latexmkrc() {
     _deploy_link "$DOTFILES/latexmkrc" "$HOME/.latexmkrc"
+}
+
+# latexindent: keep one backup instead of an unbounded name.bakN series.
+# ~/.indentconfig.yaml must hold an absolute path, so it is generated rather
+# than symlinked; it points at the repo's dotfiles/latexindent.yaml.
+_deploy_latexindent() {
+    local dest="$HOME/.indentconfig.yaml"
+    local want
+    want="# Managed by prof-workstation; do not edit directly.
+paths:
+- $DOTFILES/latexindent.yaml"
+    if [[ -f "$dest" && "$(cat "$dest")" == "$want" ]]; then
+        info "  $dest already up to date."
+        return 0
+    fi
+    if [[ -e "$dest" || -L "$dest" ]]; then
+        local bak="${dest}.bak-$(date +%F)"
+        warn "  Backing up $dest → $bak"
+        mv "$dest" "$bak"
+    fi
+    printf '%s\n' "$want" > "$dest"
+    info "  Wrote $dest → $DOTFILES/latexindent.yaml"
 }
 
 # Claude Code: keybindings and personal skills. Each skill is linked as its own
@@ -224,6 +246,7 @@ run_step "gitconfig"          _deploy_gitconfig
 run_step "tmux.conf"          _deploy_tmux
 run_step "Ghostty config"     _deploy_ghostty
 run_step "latexmkrc"          _deploy_latexmkrc
+run_step "latexindent (single backup)" _deploy_latexindent
 run_step "Claude Code keybindings + skills" _deploy_claude
 run_step "SSH config template" _deploy_ssh_config
 run_step "ssh rc (agent link)" _deploy_ssh_rc

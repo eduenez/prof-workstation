@@ -596,3 +596,15 @@ Update the "Tested" column as features are exercised on the Mac Studio.
 `features/05-emacs.sh` clones `elisp` and creates `~/.emacs.d → ~/repos/elisp`.
 It does **not** call `elisp/setup.sh`. Elpaca bootstraps itself on the first
 Emacs launch using the config in `elisp/init.el`.
+
+### 2026-11-05 — `latexindent` limited to one backup (Claude Sonnet 5.5 / Claude Code)
+
+- `latexindent -w` writes `name.bak0`, `name.bak1`, … on every run (default
+  `maxNumberOfBackUps` 1000), which littered `~/repos/research/*` with 32
+  files. Not an Emacs setting.
+- Added `dotfiles/latexindent.yaml` (`onlyOneBackUp: 1`, `backupExtension: .bak0`) and a
+  `_deploy_latexindent` step in `features/04-dotfiles.sh`. It generates
+  `~/.indentconfig.yaml` (absolute path to the repo file, so generated, not
+  symlinked; idempotent, dated backup of any other file).
+- Apply on other machines: `git pull && bash install.sh dotfiles` (this runs
+  the whole dotfiles feature, see the 2026-09-16 note).
