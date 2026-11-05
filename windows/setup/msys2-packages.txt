@@ -1,6 +1,10 @@
 # windows/setup/msys2-packages.txt — pacman packages for C:\msys64 (packages.sh section "msys2")
 # ucrt64 = native Windows programs; plain names = MSYS (Unix-emulation) tools.
 mingw-w64-ucrt-x86_64-emacs
+mingw-w64-ucrt-x86_64-emacs-pdf-tools-server   # epdfinfo for pdf-tools (no build needed)
+mingw-w64-ucrt-x86_64-gcc                      # C compiler: Emacs builds tree-sitter grammars with it
+mingw-w64-ucrt-x86_64-enchant                  # spell-checking library for jinx (uses the hunspell dictionaries)
+mingw-w64-ucrt-x86_64-pkgconf                  # pkg-config: jinx finds enchant with it when building jinx-mod.dll
 mingw-w64-ucrt-x86_64-ripgrep
 mingw-w64-ucrt-x86_64-fd
 mingw-w64-ucrt-x86_64-hunspell

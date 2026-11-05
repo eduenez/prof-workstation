@@ -12,7 +12,7 @@
 #   kanata  kanata (tray build) + kanata.kbd + a sign-in task with admin rights
 #           (section kanata-user instead: same, without admin rights)
 #   sync    winget-sync.txt (Dropbox, Google Drive); signing in and folder choice are manual
-#   syncthing  sign-in task for Syncthing (no console, no browser); pairing is manual (PLAN.md Phase 7)
+#   syncthing  task starting Syncthing at Windows start, signed in or not (S4U); pairing is manual
 #   emacs   native Emacs wired to the shared elisp repo: Developer Mode (symlinks without admin),
 #           clone eduenez/elisp, retire the old ~/.emacs and ~/.emacs.d link, Start-menu shortcut
 #   wsl     Ubuntu 26.04 LTS, stored on M:\WSL\Ubuntu-26.04
@@ -54,11 +54,21 @@ WG=(--accept-package-agreements --accept-source-agreements --disable-interactivi
 # Not schtasks.exe /create: that gives every task a 72-hour time limit, after which Windows
 # kills it (kanata and Syncthing must run for weeks). Also: run on battery, one instance only.
 logon_task() {   # optional 5th argument: working directory (default: the program's own folder)
+    # the task restarts the program (up to 10 times, 1 min apart) when it exits with an error,
+    # e.g. kanata's occasional crash (0xC0000409)
     local lvl=Limited; [[ $4 == yes ]] && lvl=Highest
     local wd=${5:-}
     [[ -z $wd ]] && wd=${2%\\*}             # the program's folder (strip "\name.exe")
     echo "    run level: $lvl; working directory: $wd"
-    run ps "\$a = New-ScheduledTaskAction -Execute '$2' -Argument '$3' -WorkingDirectory '$wd'; \$t = New-ScheduledTaskTrigger -AtLogOn -User \$env:USERNAME; \$s = New-ScheduledTaskSettingsSet -ExecutionTimeLimit ([TimeSpan]::Zero) -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -MultipleInstances IgnoreNew; \$p = New-ScheduledTaskPrincipal -UserId \$env:USERNAME -LogonType Interactive -RunLevel $lvl; Register-ScheduledTask -TaskPath '\\dalekanium\\' -TaskName '$1' -Action \$a -Trigger \$t -Settings \$s -Principal \$p -Force | Out-Null"
+    run ps "\$a = New-ScheduledTaskAction -Execute '$2' -Argument '$3' -WorkingDirectory '$wd'; \$t = New-ScheduledTaskTrigger -AtLogOn -User \$env:USERNAME; \$s = New-ScheduledTaskSettingsSet -ExecutionTimeLimit ([TimeSpan]::Zero) -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -MultipleInstances IgnoreNew -RestartCount 10 -RestartInterval (New-TimeSpan -Minutes 1); \$p = New-ScheduledTaskPrincipal -UserId \$env:USERNAME -LogonType Interactive -RunLevel $lvl; Register-ScheduledTask -TaskPath '\\dalekanium\\' -TaskName '$1' -Action \$a -Trigger \$t -Settings \$s -Principal \$p -Force | Out-Null"
+}
+
+boot_task() {   # boot_task NAME EXE ARGS: at Windows start, as this user, NOT signed in (S4U: no stored
+    # password; local files and network sockets work, network shares do not), no time limit,
+    # restarted up to 3 times if it dies. Keeps running across sign-in/out.
+    local wd=${2%\\*}
+    echo "    at startup, S4U, run level Limited; working directory: $wd"
+    run ps "\$a = New-ScheduledTaskAction -Execute '$2' -Argument '$3' -WorkingDirectory '$wd'; \$t = New-ScheduledTaskTrigger -AtStartup; \$s = New-ScheduledTaskSettingsSet -ExecutionTimeLimit ([TimeSpan]::Zero) -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -MultipleInstances IgnoreNew -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1); \$p = New-ScheduledTaskPrincipal -UserId \$env:USERNAME -LogonType S4U -RunLevel Limited; Register-ScheduledTask -TaskPath '\\dalekanium\\' -TaskName '$1' -Action \$a -Trigger \$t -Settings \$s -Principal \$p -Force | Out-Null"
 }
 
 winget_machine() {   # winget_machine LISTFILE
@@ -140,6 +150,10 @@ if want kanata || want kanata-user; then
             ELEV=${KANATA_ELEVATED:-yes}; want kanata-user && ELEV=no   # section "kanata-user" = no admin rights
             logon_task kanata "$KEXE" "-c $KCFG" "$ELEV"    # path has no spaces
             echo "  starts at each sign-in; start it now with: schtasks /run /tn dalekanium\\kanata"
+            # Start-menu shortcut to restart it by hand, with the hotkey Ctrl+Alt+K
+            RK=$(cygpath -w "$HERE/restart-kanata.cmd")
+            run ps "\$s = (New-Object -ComObject WScript.Shell).CreateShortcut('C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Restart kanata.lnk'); \$s.TargetPath = '$RK'; \$s.WindowStyle = 7; \$s.Hotkey = 'Ctrl+Alt+K'; \$s.Save()"
+            echo "  restart by hand: Start menu 'Restart kanata', or Ctrl+Alt+K"
         fi
     fi
 fi
@@ -163,7 +177,7 @@ fi
 
 # ── Syncthing: started at sign-in, no console window, no browser ───────
 if want syncthing; then
-    hdr "Syncthing sign-in task (pairing is manual: PLAN.md Phase 7)"
+    hdr "Syncthing task at Windows start, before anyone signs in (pairing is manual: PLAN.md Phase 7)"
     SEXE=$(where.exe syncthing 2>/dev/null </dev/null | head -1 | tr -d '\r')
     [[ -z $SEXE ]] && SEXE=$(find /c/Program\ Files/WinGet/Packages -maxdepth 3 -iname 'syncthing.exe' 2>/dev/null | head -1)
     [[ $SEXE == /* ]] && SEXE=$(cygpath -w "$SEXE")
@@ -171,8 +185,9 @@ if want syncthing; then
         echo "  !! syncthing.exe not found (section apps installs it)"; $APPLY && FAILED+=("syncthing: exe not found")
     else
         echo "  found $SEXE"
-        logon_task syncthing "$SEXE" '--no-console --no-browser' no
-        echo "  start now: schtasks /run /tn dalekanium\\syncthing ; GUI: http://127.0.0.1:8384"
+        boot_task syncthing "$SEXE" '--no-console --no-browser'
+        echo "  switch over now: taskkill /im syncthing.exe /f  then  schtasks /run /tn dalekanium\\syncthing"
+        echo "  GUI: http://127.0.0.1:8384 (same config: it runs as Eduardo)"
     fi
 fi
 
