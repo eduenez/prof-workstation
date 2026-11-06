@@ -7,7 +7,7 @@
 set -u
 APPLY=false; [[ ${1:-} == --apply ]] && APPLY=true
 B=/m/Eduardo
-run() { echo "  $*"; $APPLY && { "$@" || echo "    !! failed"; }; }
+run() { echo "  $*"; if $APPLY; then "$@" || echo "    !! failed"; fi; return 0; }
 $APPLY || echo "DRY RUN (re-run with --apply)"
 
 echo "1. delete leftovers of trees the cleanup already emptied (only links and folders remain)"

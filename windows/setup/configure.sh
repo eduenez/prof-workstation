@@ -108,6 +108,11 @@ if want privacy; then
     # OneDrive: block the PERSONAL account and folder "backup"; the UTSA work account keeps working
     reg_dword 'HKLM\SOFTWARE\Policies\Microsoft\OneDrive' DisablePersonalSync 1
     reg_dword 'HKLM\SOFTWARE\Policies\Microsoft\OneDrive' KFMBlockOptIn 1
+    # ...and make sure the blanket block is NOT set: DisableFileSyncNGSC (Windows\OneDrive key) makes
+    # OneDrive.exe exit at once with 0x800704EC "blocked by group policy" (found on DK 2026-11-05)
+    if reg.exe query 'HKLM\SOFTWARE\Policies\Microsoft\Windows\OneDrive' /v DisableFileSyncNGSC >/dev/null 2>&1; then
+        run reg.exe delete 'HKLM\SOFTWARE\Policies\Microsoft\Windows\OneDrive' /v DisableFileSyncNGSC /f
+    fi
     reg_dword 'HKCU\Software\Microsoft\Windows\CurrentVersion\UserProfileEngagement' ScoobeSystemSettingEnabled 0  # "Let's finish setting up"
     for v in ContentDeliveryAllowed SilentInstalledAppsEnabled SoftLandingEnabled SystemPaneSuggestionsEnabled \
              SubscribedContent-338388Enabled SubscribedContent-338389Enabled SubscribedContent-310093Enabled \

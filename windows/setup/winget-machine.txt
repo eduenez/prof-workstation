@@ -14,6 +14,7 @@ Git.Git
 GitHub.cli
 Microsoft.VisualStudioCode
 MSYS2.MSYS2                 # native Emacs + Unix tools (packages: msys2-packages.txt)
+Python.Python.3.13          # site-tools scripts (repos.py needs >= 3.11)
 
 # file managers and editors
 Ghisler.TotalCommander      # licence: put wincmd.key next to TOTALCMD64.EXE

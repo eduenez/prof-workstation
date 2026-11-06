@@ -11,7 +11,7 @@ mingw-w64-ucrt-x86_64-hunspell
 mingw-w64-ucrt-x86_64-hunspell-en
 mingw-w64-ucrt-x86_64-aspell
 mingw-w64-ucrt-x86_64-aspell-en
-mingw-w64-ucrt-x86_64-sqlite3
+mingw-w64-ucrt-x86_64-sqlite                   # (was sqlite3: renamed upstream; the old name made pacman swap packages on every run)
 zsh
 tmux
 mc
