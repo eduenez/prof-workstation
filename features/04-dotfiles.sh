@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 04-dotfiles — Oh My Zsh, zshrc, zprofile, gitconfig, tmux, Ghostty, latexmkrc, latexindent, Claude Code (keybindings + skills), SSH (+ Bitwarden agent on Linux), Karabiner, MC.
+# 04-dotfiles — Oh My Zsh, zshrc, zprofile, gitconfig, tmux, Ghostty, latexmkrc, latexindent, Claude Code (keybindings + skills), SSH (+ Bitwarden agent on Linux; on WSL a bridge to the Windows agent), Karabiner, MC.
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/lib/common.sh"
 
 DOTFILES="$REPO_DIR/dotfiles"
@@ -158,6 +158,47 @@ _deploy_bitwarden_sock() {
     info "  $dest → $snap_sock"
 }
 
+# WSL: Bitwarden is the Windows app, whose agent listens on the named pipe \\.\pipe\openssh-ssh-agent, which Linux
+# programs cannot open.  A systemd user service bridges it to ~/.bitwarden-ssh-agent.sock (the path zprofile, the ssh
+# config template and emacs-config.org already use) with socat + npiperelay.exe.  Windows side, once:
+#   winget install -e --id albertony.npiperelay
+# The relay is started through a small wrapper so a path with spaces ("Program Files") survives socat's EXEC parsing.
+_deploy_wsl_agent_bridge() {
+    $IS_WSL || return 0
+    command_exists socat || { warn "  socat not installed (feature apt-pkgs) — skipping the Bitwarden bridge."; return 1; }
+    command_exists systemctl && systemctl --user show-environment &>/dev/null \
+        || { warn "  no systemd user manager (set [boot] systemd=true in /etc/wsl.conf, then wsl --shutdown)."; return 1; }
+    local relay c
+    relay="$(command -v npiperelay.exe 2>/dev/null)"
+    if [[ -z "$relay" ]]; then
+        for c in /mnt/c/Users/*/AppData/Local/Microsoft/WinGet/Links/npiperelay.exe \
+                 "/mnt/c/Program Files/WinGet/Links/npiperelay.exe"; do
+            [[ -e "$c" ]] && { relay="$c"; break; }
+        done
+    fi
+    [[ -n "$relay" ]] || { warn "  npiperelay.exe not found. On Windows: winget install -e --id albertony.npiperelay"; return 1; }
+    local wrap="$HOME/.local/bin/bitwarden-agent-relay" unit="$HOME/.config/systemd/user/bitwarden-agent-bridge.service"
+    mkdir -p "$HOME/.local/bin" "$HOME/.config/systemd/user"
+    printf '#!/bin/sh\n# written by prof-workstation 04-dotfiles: relay to the Windows Bitwarden SSH agent pipe\nexec "%s" -ei -s //./pipe/openssh-ssh-agent\n' \
+        "$relay" >"$wrap" && chmod 755 "$wrap"
+    cat >"$unit" <<'UNIT'
+[Unit]
+Description=Windows Bitwarden SSH agent at ~/.bitwarden-ssh-agent.sock (socat + npiperelay)
+
+[Service]
+ExecStartPre=/bin/rm -f %h/.bitwarden-ssh-agent.sock
+ExecStart=/usr/bin/socat UNIX-LISTEN:%h/.bitwarden-ssh-agent.sock,fork,umask=077 EXEC:%h/.local/bin/bitwarden-agent-relay,nofork
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=default.target
+UNIT
+    systemctl --user daemon-reload && systemctl --user enable --now bitwarden-agent-bridge.service \
+        && systemctl --user restart bitwarden-agent-bridge.service \
+        && info "  Bitwarden bridge running: ~/.bitwarden-ssh-agent.sock -> Windows agent (relay $relay)"
+}
+
 # gcr-ssh-agent.socket and ssh-agent.socket each `systemctl --user
 # set-environment SSH_AUTH_SOCK=...` when started (gcr last, so it wins),
 # clobbering the Bitwarden socket for every unit started afterwards —
@@ -251,6 +292,7 @@ run_step "Claude Code keybindings + skills" _deploy_claude
 run_step "SSH config template" _deploy_ssh_config
 run_step "ssh rc (agent link)" _deploy_ssh_rc
 run_step "Bitwarden agent socket link" _deploy_bitwarden_sock
+run_step "Bitwarden agent bridge (WSL)" _deploy_wsl_agent_bridge
 run_step "Mask competing SSH agents" _mask_competing_ssh_agents
 run_step "Karabiner config"   _deploy_karabiner
 run_step "MC skin"            _deploy_mc
