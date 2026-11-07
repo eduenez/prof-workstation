@@ -14,6 +14,17 @@
 #                                      and compares them byte-for-byte (SHA-256) with the originals.
 #   bash restic.sh restic ARGS...      any restic command against this repository (e.g. snapshots, mount).
 #
+# Offline copy on a portable SSD (usually unplugged), expected at drive V: (RESTIC_OFFLINE_DRIVE=<letter> to change;
+# give the SSD that letter once in Disk Management and Windows keeps it).  If it is not there, the other drive letters
+# are searched for its folder, except the fixed ones (C: F: G: M: W: X:).  exFAT or NTFS both work.
+#   bash restic.sh offline-init [V:] [--apply] ELEVATED. Create V:\restic-dalekanium-offline with its own password
+#                                              (C:\ProgramData\dalekanium\restic\password-offline + Bitwarden), with
+#                                              the same chunker parameters as W:, so copies deduplicate.
+#   bash restic.sh offline                     copy every snapshot of W: that the SSD lacks (`restic copy`: reads the
+#                                              repository on W:, not the sources), then forget/prune with the same
+#                                              policy, then check 5% of the SSD's data.  Eject the SSD afterwards.
+#   bash restic.sh offline-restore-test [N]    restore test against the SSD.
+#
 # Repository  W:\restic-dalekanium   (never created anywhere else: if W: is missing, nothing runs)
 # Password    C:\ProgramData\dalekanium\restic\password  (readable by Eduardo, SYSTEM, Administrators
 #             only). The SAME password must be in Bitwarden: without it the backups are unreadable.
@@ -39,6 +50,10 @@ SOURCES=(
   'C:\ProgramData\dalekanium'
 )
 KEEP=(--keep-daily 7 --keep-weekly 5 --keep-monthly 12 --keep-yearly 3)
+OFF_DIR=restic-dalekanium-offline
+OFF_DRIVE=${RESTIC_OFFLINE_DRIVE:-V}; OFF_DRIVE=${OFF_DRIVE:0:1}; OFF_DRIVE=${OFF_DRIVE,,}
+OFF_SKIP="c f g m w x"   # system, DVD, FreeAgent, data SSD, Elements, Google Drive: never the portable SSD
+OFF_PW='C:\ProgramData\dalekanium\restic\password-offline'
 
 is_admin() { net.exe session >/dev/null 2>&1; }
 ts()  { date '+%F %T'; }
@@ -55,6 +70,26 @@ need_repo() {
     find_restic || die "restic not found (winget install -e --id restic.restic --scope machine)"
 }
 r() { "$RESTIC" "$@"; }
+
+find_offline() {   # -> OFF_POSIX (/x/restic-dalekanium-offline) and OFF_REPO (X:\restic-dalekanium-offline)
+    local l d
+    for l in "$OFF_DRIVE" {d..z}; do
+        d=/$l
+        [[ " $OFF_SKIP " == *" $l "* || ! -d $d ]] && continue
+        if [[ -f $d/$OFF_DIR/config ]]; then
+            OFF_POSIX=$d/$OFF_DIR; OFF_REPO="${d:1:1}"; OFF_REPO="${OFF_REPO^^}:\\$OFF_DIR"; return 0
+        fi
+    done
+    return 1
+}
+ro() { "$RESTIC" -r "$OFF_REPO" --password-file "$OFF_PW" "$@"; }   # restic against the offline SSD
+make_password() {   # make_password WINDOWS-PATH: ask twice, write it (the folder's restricted ACL is inherited)
+    local P1 P2 f; f=$(cygpath -u "$1")
+    read -rsp "New password (store it in Bitwarden too): " P1; echo
+    read -rsp "Again: " P2; echo
+    [[ -n $P1 && $P1 == "$P2" ]] || die "passwords empty or different"
+    mkdir -p "$(dirname "$f")"; printf '%s' "$P1" >"$f"; unset P1 P2
+}
 
 do_backup() {   # do_backup [restic backup options...]
     local vss=(); is_admin && vss=(--use-fs-snapshot) || echo "(not elevated: no VSS, files open by other programs may be skipped)"
@@ -153,8 +188,57 @@ status)
     need_repo
     r snapshots --compact | tail -15
     r stats --mode raw-data 2>/dev/null | grep -iE 'total size|snapshots'
-    echo "-- last runs:"; tail -5 "$LOGDIR/restic-last.txt" 2>/dev/null || echo "(none yet)"
+    echo "-- last runs:"; grep -v OFFLINE "$LOGDIR/restic-last.txt" 2>/dev/null | tail -5 || echo "(none yet)"
+    last=$(grep OFFLINE "$LOGDIR/restic-last.txt" 2>/dev/null | grep ' OK ' | tail -1)
+    if [[ -n $last ]]; then
+        age=$(( ( $(date +%s) - $(date -d "${last:0:19}" +%s) ) / 86400 ))
+        echo "-- offline SSD: last copy $age day(s) ago$( (( age > 30 )) && echo '  <-- time to plug it in: restic.sh offline' )"
+    else
+        echo "-- offline SSD: never copied (restic.sh offline-init --apply, then restic.sh offline)"
+    fi
     ;;
+offline-init)
+    APPLY=false; X=$OFF_DRIVE
+    for a in "$@"; do
+        case $a in --apply) APPLY=true ;; [A-Za-z]|[A-Za-z]:) X=${a:0:1} ;; *) die "usage: restic.sh offline-init [V:] [--apply]" ;; esac
+    done
+    X=${X^^}
+    [[ " $OFF_SKIP " == *" ${X,,} "* ]] && die "$X: is one of DK's fixed drives, not the portable SSD"
+    [[ -d /${X,,} ]] || die "$X: is not connected"
+    is_admin || die "run offline-init from an elevated Git Bash"
+    need_repo
+    OFF_REPO="$X:\\$OFF_DIR"; OFF_POSIX="/${X,,}/$OFF_DIR"
+    echo "offline repository: $OFF_REPO   (free on $X:: $(df -h "/${X,,}" | awk 'NR==2{print $4}'); W: holds $(du -sh "$REPO_POSIX" 2>/dev/null | cut -f1))"
+    $APPLY || { echo "DRY RUN: would create it (own password, chunker parameters copied from W:). Re-run with --apply."; exit 0; }
+    [[ -f $OFF_POSIX/config ]] && { echo "already initialised"; exit 0; }
+    [[ -f $(cygpath -u "$OFF_PW") ]] || make_password "$OFF_PW"
+    "$RESTIC" init -r "$OFF_REPO" --password-file "$OFF_PW" --from-repo "$RESTIC_REPOSITORY" \
+        --from-password-file "$RESTIC_PASSWORD_FILE" --copy-chunker-params || die "restic init failed"
+    echo "created. Next: bash restic.sh offline   (first copy: the whole repository, ~$(du -sh "$REPO_POSIX" 2>/dev/null | cut -f1))"
+    ;;
+offline)
+    need_repo
+    find_offline || die "no portable SSD with \\$OFF_DIR is connected (expected at ${OFF_DRIVE^^}:; first time: restic.sh offline-init --apply)"
+    [[ -f $(cygpath -u "$OFF_PW") ]] || die "no password file $OFF_PW"
+    mkdir -p "$LOGDIR"; LOG=$LOGDIR/restic-offline-$(date +%Y%m%d-%H%M).log
+    exec > >(tee -a "$LOG") 2>&1
+    echo "== $(ts) offline copy to $OFF_REPO"
+    rc=0
+    ro unlock >/dev/null 2>&1
+    ro copy --from-repo "$RESTIC_REPOSITORY" --from-password-file "$RESTIC_PASSWORD_FILE" || { echo "!! copy failed"; rc=1; }
+    if (( rc == 0 )); then
+        ro forget --host DALEKANIUM --tag nightly "${KEEP[@]}" --prune || { echo "!! forget/prune failed"; rc=1; }
+        ro check --read-data-subset=5% || { echo "!! check FAILED"; rc=1; }
+    fi
+    echo "== $(ts) offline end, rc=$rc"
+    echo "$(ts) OFFLINE $([[ $rc == 0 ]] && echo OK || echo FAIL) $(basename "$LOG")" >>"$LOGDIR/restic-last.txt"
+    (( rc == 0 )) && echo "Done. Eject the SSD (taskbar: Safely Remove Hardware) and unplug it."
+    exit $rc
+    ;;
+offline-restore-test)
+    find_offline || die "the portable SSD is not connected"
+    export RESTIC_REPOSITORY="$OFF_REPO" RESTIC_PASSWORD_FILE="$OFF_PW"; REPO_POSIX=$OFF_POSIX
+    ;&                                     # continue with restore-test, against the SSD
 restore-test)
     need_repo; N=${1:-20}; T=$(mktemp -d)
     echo "listing the latest snapshot..."

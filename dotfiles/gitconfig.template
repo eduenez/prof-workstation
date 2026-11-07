@@ -11,6 +11,11 @@
 [push]
 	autoSetupRemote = true
 
+# Push to GitHub over ssh (the Bitwarden agent) even for clones made with an https URL;
+# fetches keep their URL (https: anonymous for public repos, `gh auth setup-git` for private ones).
+[url "git@github.com:"]
+	pushInsteadOf = https://github.com/
+
 [core]
 	excludesfile = ~/.gitignore_global
 	autocrlf     = input

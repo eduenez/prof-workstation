@@ -60,7 +60,14 @@ _deploy_gitconfig() {
         warn "Git name/email empty — skipping. Set GIT_NAME and GIT_EMAIL env vars to automate."
         return 1
     fi
-    sed -e "s/{{NAME}}/$git_name/g" -e "s/{{EMAIL}}/$git_email/g" "$template" > "$dest"
+    # osxkeychain exists only on macOS; elsewhere drop that block (Linux/WSL: `gh auth setup-git`
+    # makes gh the https credential helper).
+    if [[ "$OS" == "Darwin" ]]; then
+        sed -e "s/{{NAME}}/$git_name/g" -e "s/{{EMAIL}}/$git_email/g" "$template" > "$dest"
+    else
+        sed -e "s/{{NAME}}/$git_name/g" -e "s/{{EMAIL}}/$git_email/g" \
+            -e '/^\[credential\]/,/^$/d' "$template" > "$dest"
+    fi
     info "Deployed ~/.gitconfig (name=$git_name, email=$git_email)"
 }
 

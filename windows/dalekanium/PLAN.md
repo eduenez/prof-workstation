@@ -4,7 +4,7 @@ Handoff document: everything a later session (human or agent) needs to resume th
 Companion files in this directory: `review.md` (the agreed as-is → to-be decisions, item by item).
 Scripts: `../inventory.sh` (read-only capture), `../prewipe-backup.sh` (safety copies before the wipe).
 
-## Status (2026-11-05, evening)
+## Status (2026-11-07)
 
 - [x] Git over SSH on dalekanium works (Bitwarden agent via Windows OpenSSH; `url.insteadOf` rewrite). Plain `ssh` in Git Bash needs aliases to Windows OpenSSH (see gotchas)
 - [x] Inventory captured: `M:\Eduardo\win-inventory\DALEKANIUM-20261101-*` (2343 is the complete one; 1853 also holds the **driver export**, `drivers\`, ~2 GB)
@@ -17,6 +17,12 @@ Scripts: `../inventory.sh` (read-only capture), `../prewipe-backup.sh` (safety c
 - [~] Phase 6 (`windows/setup/packages.cmd`): apps, MSYS2, kanata (sign-in task), WSL Ubuntu-26.04, Bitdefender, TeX Live, NVIDIA driver done; **sync clients done 2026-11-05**: Google Drive (mirror of `M:\Eduardo\GoogleDrive`), OneDrive UTSA (`M:\OneDrive - University of Texas at San Antonio`, pinned), Dropbox (`M:\Eduardo\Dropbox`, offline); **Tresorit skipped** (`secreto` supersedes it). Emacs/elisp, Ghostscript pending
 - [x] M: cleanup (side project below): snapshot on W:, ~140 GB deleted, games/ROMs moved to G: (2026-11-04/05)
 - [~] Phase 7: **Syncthing paired and converged 2026-11-05** (Studio, hub, macbook-gai; `synchro` + `secreto` Send & Receive); `macbook-utsa`, `chatedg-probook` optional, pair when at hand. **Restic done 2026-11-05** (`windows/setup/restic/`): repository `W:\restic-dalekanium`, first snapshot 195 GiB / 132k files (168 GiB stored, 25 min), restore test 20/20 identical, nightly task `\dalekanium\restic-nightly` 04:30 ran OK. Still to confirm: a night with DK asleep (wake + back to sleep). Optional: start Syncthing at boot instead of sign-in
+- [x] Emacs on Windows (MSYS2 UCRT64 build, elisp repo at `M:\Eduardo\repos\elisp` via the `~/.emacs.d` junction): works; Windows block in `emacs-config.org` (see gotchas). Slow on subprocess-heavy work (Magit) by Windows' nature → repository work moved to WSL
+- [x] Windows Terminal: profiles fixed in its own `settings.json` (a fragment cannot override it): Git Bash default, cmd/Git Bash start in `M:\Eduardo`; PowerShell and Azure kept visible on request
+- [x] **WSL Ubuntu-26.04 working environment (2026-11-07)**: `prof-workstation` cloned inside WSL (`~/repos`, Linux line endings), `install.sh apt-pkgs dotfiles`, zsh as login shell (`chsh`), SSH through the Windows Bitwarden agent (bridge below), `gh` logged in, `site-tools` `repos` tool + hourly fetch timer, all 37 GitHub repositories cloned into `~/repos`; Emacs with the same elisp config, daemon + `ec` launcher (elisp `setup.sh`), JetBrainsMono Nerd Font inside WSL
+- [ ] Syncthing at Windows start (S4U task): `packages.cmd --apply syncthing` not yet run
+- [x] Backup of WSL-only data: **decided not needed** (2026-11-07). WSL holds only configs and repository clones; the repos mirror/backup runs on mac-studio (read-only key). DK's role: Restic backup node, with the Studio and the hub as redundant copies
+- [ ] **Offline copy on a portable SSD** (usually unplugged): `restic.sh offline-init X: --apply` (own repository `X:\restic-dalekanium-offline`, own password, chunker parameters copied from W:), then `restic.sh offline` whenever it is plugged in (`restic copy` from W:, same forget policy, prune, check 5%); `restic.sh status` reminds after 30 days. Written 2026-11-07, not yet run
 - [ ] Afterwards: update `filetree-reorg` docs where they still describe dalekanium as "Windows 10, sleeps after active use" and assume `%USERPROFILE%\synchro` (it is `M:\Eduardo\synchro`) — Syncthing notes updated 2026-11-05
 
 ## Machine facts that drive the plan
@@ -128,6 +134,18 @@ Scripts in `cleanup/`; outputs (private file names) in `M:\Eduardo\win-inventory
 - **Work account and the PC**: signing in to Office/OneDrive offers "Allow my organization to manage my device"; answer "sign in to this app only". `dsregcmd /status` showed DK *registered* with UTSA (WorkplaceJoined YES) but **not managed** (empty `WorkplaceMdmUrl`).
 - **Restic**: its `--dry-run` still reads every file (as slow as a real first backup). "unsupported file type irregular" = old **Cygwin symlinks** (Linux-style reparse points); 18 were removed or replaced by `cleanup/fix-cygwin-symlinks.sh`. "The media is write protected" reading from the shadow copy = a **cloud placeholder** (online-only file): Dropbox had left some files online-only despite "offline"; `Make available offline` on the root fixed it. Check with `attrib /s … | findstr` for `O`/`U` flags.
 - **This Claude session cannot run Windows commands** (registry, `dism`, `sc`); it reads and writes files in connected folders only. For hands-on Windows administration run Claude Code in a terminal on DK; here, export settings to files under `M:\Eduardo\win-inventory\` and read them.
+
+### Found 2026-11-06/07 (Emacs, WSL, repos)
+
+- **Saving files into the repos from this kind of Claude session**: re-using a staging folder delivered a STALE copy (five files were silently old). Always a fresh folder per save, and check the size on the device afterwards.
+- **`core.autocrlf=true`** made every Windows checkout CRLF; now `git config --global core.autocrlf input`. Never run Linux scripts from a Windows checkout under `/mnt/m` (a CRLF `apt-packages.txt` breaks `read`); WSL has its own clones.
+- **Python on Windows** decodes subprocess output with cp1252 unless told otherwise: `repos.py` now reads git/gh output as UTF-8 (a repository description with "”" crashed it). Python also ignores `HOME` (takes `~` from `USERPROFILE`): `repos.py` honours `HOME`. In Git Bash, `python3` is MSYS2's (the only `python3.exe`); use `uv run --python 3.13 …` (alias `repos`).
+- **MSYS2 package list**: `sqlite3` was renamed `sqlite` (the old name made pacman swap packages every run); Jinx needs `enchant` + `pkgconf`; tree-sitter grammars need `gcc`; pdf-tools uses `emacs-pdf-tools-server`.
+- **OneDrive's `DisablePersonalSync` did not stop a personal account** from being linked (silently, to `C:\Users\Eduardo\OneDrive`); unlinked, empty. Not investigated further.
+- **MELPA renamed its default branch to `main`** (Nov 2026) while Elpaca still clones `master`: fresh installs fail with "couldn't find remote ref master". Override of `elpaca-menu-melpa--clone` in `elisp/init.el`; existing caches (`elpaca/cache/melpa`) must be deleted once.
+- **copilot.el needs track-changes ≥ 1.4**: built in on Emacs 31 (Windows), ELPA copy needed on Emacs 30 (Ubuntu 26.04).
+- **WSL**: Ubuntu's login shell was bash, so `~/.zprofile` (SSH_AUTH_SOCK) never ran: `chsh -s $(command -v zsh)`. Bitwarden's agent is a Windows pipe: `prof-workstation` 04-dotfiles installs `bitwarden-agent-bridge.service` (socat + `npiperelay.exe`, Windows side `winget install -e --id albertony.npiperelay`) serving `~/.bitwarden-ssh-agent.sock`. WSLg apps use Linux fonts. The stock Emacs unit waits for a desktop session WSL never has; elisp `setup.sh` now installs a WSL variant (default.target, DISPLAY=:0, login shell), enables linger and installs `ec`.
+- **`repos` unattended fetch** (hourly timer, `--no-ssh`) needs `~/.config/repos/git-credentials` (read-only fine-grained token) or a dedicated `ssh_key`; without either it skips ssh remotes.
 
 ### Earlier
 

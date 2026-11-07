@@ -35,7 +35,7 @@ tools, fonts, and GUI applications.
 | `pkgmgr` | Homebrew (macOS) / apt update (Linux) |
 | `brew-bundle` | All Homebrew packages, casks, and fonts via `Brewfile` |
 | `apt-pkgs` | Equivalent apt packages (Linux / WSL) |
-| `dotfiles` | Shell config, Git, tmux, Ghostty, SSH skeleton, Karabiner, Claude Code keybindings + skills |
+| `dotfiles` | Shell config, Git, tmux, Ghostty, SSH skeleton, Karabiner, Claude Code keybindings + skills; on WSL a bridge to the Windows Bitwarden SSH agent |
 | `emacs` | Emacs.app + `elisp` repo clone + elpaca bootstrap |
 | `vscode` | VS Code + extension list |
 | `python` | `uv` — Python versions, virtualenvs, and packages |
@@ -64,6 +64,12 @@ WhatsApp · Zoom · VLC · VS Code · Zotero · Obsidian · and more.
   installs these if absent.
 - Linux / WSL: a working Ubuntu or Debian installation with `sudo` access.
 - On any platform: this repository cloned or downloaded.
+- WSL: clone it **inside** WSL (`~/repos/prof-workstation`), never run it from a Windows checkout under
+  `/mnt/<drive>` (CRLF line endings break the list parsing).  Make zsh the login shell
+  (`chsh -s "$(command -v zsh)"`): the managed `~/.zprofile` sets `SSH_AUTH_SOCK`.  For SSH through the
+  Windows Bitwarden app, install the relay on Windows first (`winget install -e --id albertony.npiperelay`);
+  `install.sh dotfiles` then runs `bitwarden-agent-bridge.service` (socat), which serves
+  `~/.bitwarden-ssh-agent.sock`.  Windows itself is set up by `windows/` (see `windows/dalekanium/PLAN.md`).
 
 ---
 
