@@ -24,6 +24,11 @@
             "icon": "%ProgramFiles%\\Git\\mingw64\\share\\git\\git-for-windows.ico",
             "startingDirectory": "M:\\Eduardo",
             "elevate": true
+        },
+        {
+            "name": "Emacs (WSL, terminal)",
+            "commandline": "wsl.exe -d Ubuntu-26.04 --cd ~ -- /home/eduardo/.local/bin/ec -t",
+            "icon": "C:\\msys64\\ucrt64\\bin\\emacs.exe"
         }
     ]
 }

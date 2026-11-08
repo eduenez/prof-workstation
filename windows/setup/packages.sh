@@ -16,6 +16,8 @@
 #   emacs   native Emacs wired to the shared elisp repo: Developer Mode (symlinks without admin),
 #           clone eduenez/elisp, retire the old ~/.emacs and ~/.emacs.d link, Start-menu shortcut
 #   wsl     Ubuntu 26.04 LTS, stored on M:\WSL\Ubuntu-26.04
+#   emacs-wsl  Start-menu shortcut "Emacs (WSL)": starts WSL if needed and opens a frame
+#           of the WSL Emacs daemon (elisp's `ec`; the daemon is started by systemd/linger or by `ec`)
 # Not here (manual, see PLAN.md): Bitdefender, Microsoft 365 (UTSA), NVIDIA driver, TeX Live,
 # Ghostscript (not in winget), Tresorit (skipped for now),
 # WhatsApp and All the Unicode (Store), StartAllBack (optional), UTSA VPN.
@@ -26,7 +28,7 @@ export MSYS_NO_PATHCONV=1 MSYS2_ARG_CONV_EXCL='*'
 
 APPLY=false
 [[ ${1:-} == --apply ]] && { APPLY=true; shift; }
-SECTIONS=${*:-"remove apps msys2 kanata sync syncthing emacs wsl"}
+SECTIONS=${*:-"remove apps msys2 kanata sync syncthing emacs wsl emacs-wsl"}
 HERE=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 LOGDIR=/c/ProgramData/dalekanium/logs
 LOG="$LOGDIR/packages-$(date +%Y%m%d-%H%M%S).log"
@@ -150,10 +152,10 @@ if want kanata || want kanata-user; then
             ELEV=${KANATA_ELEVATED:-yes}; want kanata-user && ELEV=no   # section "kanata-user" = no admin rights
             logon_task kanata "$KEXE" "-c $KCFG" "$ELEV"    # path has no spaces
             echo "  starts at each sign-in; start it now with: schtasks /run /tn dalekanium\\kanata"
-            # Start-menu shortcut to restart it by hand, with the hotkey Ctrl+Alt+K
+            # Start-menu shortcut to restart it by hand (no Ctrl+Alt hotkey: those belong to Emacs)
             RK=$(cygpath -w "$HERE/restart-kanata.cmd")
-            run ps "\$s = (New-Object -ComObject WScript.Shell).CreateShortcut('C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Restart kanata.lnk'); \$s.TargetPath = '$RK'; \$s.WindowStyle = 7; \$s.Hotkey = 'Ctrl+Alt+K'; \$s.Save()"
-            echo "  restart by hand: Start menu 'Restart kanata', or Ctrl+Alt+K"
+            run ps "\$s = (New-Object -ComObject WScript.Shell).CreateShortcut('C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Restart kanata.lnk'); \$s.TargetPath = '$RK'; \$s.WindowStyle = 7; \$s.Hotkey = ''; \$s.Save()"
+            echo "  restart by hand: Start menu 'Restart kanata' (hotkey, if wanted: PowerToys Keyboard Manager, e.g. Win+Shift+K)"
         fi
     fi
 fi
@@ -211,6 +213,21 @@ if want emacs; then
     run ps "\$s = (New-Object -ComObject WScript.Shell).CreateShortcut('C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Emacs.lnk'); \$s.TargetPath = 'C:\msys64\ucrt64\bin\runemacs.exe'; \$s.WorkingDirectory = 'M:\Eduardo'; \$s.Save()"
     echo "  first start: Elpaca builds every package (several minutes). The elisp config must put"
     echo "  C:\\msys64\\ucrt64\\bin and C:\\msys64\\usr\\bin on exec-path for git/rg/aspell (next step)."
+fi
+
+# ── Emacs in WSL: one click from Windows ────────────────
+# wslg.exe runs a Linux GUI program without a console window, starting the distro if needed. `ec` (installed
+# by elisp's setup.sh) opens a frame of the daemon, starting it if it is not up yet.  Icon: the native Emacs's.
+if want emacs-wsl; then
+    D=${WSL_DISTRO:-Ubuntu-26.04}; WU=${WSL_USER:-eduardo}
+    hdr "Start-menu shortcut 'Emacs (WSL)' -> $D: ~/.local/bin/ec"
+    WSLG='C:\Program Files\WSL\wslg.exe'
+    [[ -f /c/Program\ Files/WSL/wslg.exe ]] || echo "  !! $WSLG not found (WSL from the Store/winget installs it)"
+    ICON='C:\msys64\ucrt64\bin\emacs.exe'
+    run ps "\$s = (New-Object -ComObject WScript.Shell).CreateShortcut('C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Emacs (WSL).lnk'); \$s.TargetPath = '$WSLG'; \$s.Arguments = '-d $D --cd ~ -- /home/$WU/.local/bin/ec'; \$s.IconLocation = '$ICON,0'; \$s.Hotkey = ''; \$s.Description = 'Emacs (WSL): frame of the daemon'; \$s.Save()"
+    echo "  pin it from the Start menu if you like; a terminal frame: Windows Terminal profile 'Emacs (WSL, terminal)'"
+    echo "  hotkey (no Ctrl+Alt: Emacs needs those): PowerToys Keyboard Manager -> Remap a shortcut -> Win+Shift+E"
+    echo "    -> Run program: $WSLG  args: -d $D --cd ~ -- /home/$WU/.local/bin/ec   (see PLAN.md)"
 fi
 
 # ── WSL: Ubuntu 26.04 LTS on M: ────────────────────────────────────────
