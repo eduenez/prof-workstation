@@ -350,6 +350,29 @@ machine (MacPorts). The `dotfiles/` are adapted from `~/.zshrc`, `~/.zprofile`,
   positions) along with `@affinities`. `tmux.conf` now sets `aggressive-resize off` explicitly,
   so `tmux source-file ~/.tmux.conf` repairs servers on other machines still running with it on.
 
+### 2026-11-09 — tmux: ssh agent follows the machine that attached last; `tm` (Claude Opus 5.5 / Claude Code)
+
+- Symptom: `ssh msuk` from a tmux pane on `mac-studio` (iTerm2, on campus) hung, then failed. The
+  same session was also attached from `macbook-gai` (asleep at home), whose forwarded agent had
+  taken over: `~/.ssh/rc` relinked `~/.ssh/agent.sock` (every pane's `SSH_AUTH_SOCK`) on **every**
+  ssh login, so the Bitwarden prompt went to the sleeping laptop.
+- tmux has one environment per session, so with two clients from two machines there is no "which
+  computer is this pane on". Policy chosen: one client at a time, and the agent follows the client
+  that attached. The "most recently active client" alternative fails because tmux never updates
+  `client_activity` for iTerm2's `-CC` client (it stays at the attach time).
+- New `dotfiles/bin/tmux-agent-link PID`: reads the client's `SSH_AUTH_SOCK` (`ps -E` on macOS,
+  `/proc/PID/environ` on Linux) and links `agent.sock` to it when it is a live forwarded socket,
+  else to `~/.bitwarden-ssh-agent.sock`. `tmux.conf` runs it from a `client-attached` hook.
+  `dotfiles/ssh/rc` no longer touches the link (it keeps the X11 part).
+- New `dotfiles/bin/tm` (replaces the `tm`/`tmucs` aliases; `tmucs` is now `tm -c`): attaches to
+  `main` with `new-session -A -D` (other clients detached), with `-CC` only in iTerm2
+  (`TERM_PROGRAM=iTerm.app`, or `LC_TERMINAL=iTerm2`, which ssh forwards with `LC_*`), `-c`/`-p`
+  to force either way. If only a session `0` exists it offers to rename it (default) or start
+  `main` beside it. `04-dotfiles` links both scripts into `~/.local/bin`.
+- Tested in an isolated server (`TMUX_TMPDIR` under `/tmp`: tmux's socket path is limited to
+  ~104 bytes, which the scratchpad path exceeds; `TMUX_AGENT_LINK` redirects the link). Applied
+  on `mac-studio` with `tmux source-file`. Other machines: `git pull && bash install.sh dotfiles`.
+
 ### 2026-11-04 — `qpdf` for course-data's PDF builds (Claude Opus 5.5 / Claude Code)
 
 - `course-data`'s `make assignments` now builds each problem-set PDF aside and installs it with

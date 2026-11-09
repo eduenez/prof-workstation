@@ -67,8 +67,8 @@ alias ls="$_gnu_ls --color=auto"
 alias ll="$_gnu_ls -lh --color=auto"
 alias la="$_gnu_ls -lAh --color=auto"
 unset _gnu_ls
-alias tm='tmux new -A -s main'          # attach to "main", creating it if needed
-alias tmucs='tmux -CC new -A -s main'   # same, via iTerm2 tmux integration (tabs)
+# tmux: `tm` (dotfiles/bin) attaches to "main" (-CC in iTerm2), detaching other clients.
+alias tmucs='tm -c'                     # old name: force iTerm2's tmux integration
 
 # ── Local overrides ───────────────────────────────────────────────────
 [[ -f "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"

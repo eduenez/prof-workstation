@@ -1,0 +1,32 @@
+#!/bin/sh
+# tmux-agent-link PID — point ~/.ssh/agent.sock at the ssh agent of process PID (a tmux client).
+#
+# Every tmux pane uses SSH_AUTH_SOCK=~/.ssh/agent.sock (tmux.conf), and tmux.conf's client-attached hook calls this
+# with the attaching client's PID; `tm` calls it with its own.  So signing requests go to the machine that attached
+# last:
+#   - a client from an ssh login with a forwarded agent → that forwarded socket (Bitwarden on the laptop you use);
+#   - any other client (a local terminal)                → this machine's Bitwarden, ~/.bitwarden-ssh-agent.sock.
+# `tm` detaches the other clients, so "attached last" is also "the only one attached".
+#
+# TMUX_AGENT_LINK overrides the link path (for testing).
+
+link="${TMUX_AGENT_LINK:-$HOME/.ssh/agent.sock}"
+local_agent="$HOME/.bitwarden-ssh-agent.sock"
+pid="${1:?usage: tmux-agent-link PID}"
+
+# The client's SSH_AUTH_SOCK, read from its environment (socket paths have no spaces, so splitting on them is safe).
+if [ -r "/proc/$pid/environ" ]; then
+    sock=$(tr '\0' '\n' < "/proc/$pid/environ" | sed -n 's/^SSH_AUTH_SOCK=//p')
+else
+    sock=$(ps -E -ww -o command= -p "$pid" 2>/dev/null | tr ' ' '\n' | sed -n 's/^SSH_AUTH_SOCK=//p' | tail -n 1)
+fi
+
+case "$sock" in
+    "$link") exit 0 ;;   # a client started from a tmux pane: nothing new to learn
+    /tmp/ssh-*/agent.*|/tmp/vscode-ssh-auth-sock-*|"$HOME"/.ssh/agent/s.*.sshd.*)
+        [ -S "$sock" ] && target="$sock" ;;
+esac
+target="${target:-$local_agent}"
+
+mkdir -p "$(dirname "$link")"
+ln -sfn "$target" "$link"

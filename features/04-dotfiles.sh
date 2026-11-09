@@ -71,8 +71,14 @@ _deploy_gitconfig() {
     info "Deployed ~/.gitconfig (name=$git_name, email=$git_email)"
 }
 
+# Also `tm` (attach to "main") and tmux-agent-link (tmux.conf's client-attached hook), in ~/.local/bin.
 _deploy_tmux() {
     _deploy_link "$DOTFILES/tmux.conf" "$HOME/.tmux.conf"
+    mkdir -p "$HOME/.local/bin"
+    local f
+    for f in tm tmux-agent-link; do
+        _deploy_link "$DOTFILES/bin/$f" "$HOME/.local/bin/$f"
+    done
 }
 
 _deploy_ghostty() {
@@ -133,7 +139,7 @@ _deploy_ssh_config() {
     info "Deployed ~/.ssh/config template — fill in host entries manually."
 }
 
-# sshd runs ~/.ssh/rc at login: it relinks ~/.ssh/agent.sock to the forwarded agent (see tmux.conf).
+# sshd runs ~/.ssh/rc at login; it skips its own X11 cookie setup when the file exists, so rc does it.
 _deploy_ssh_rc() {
     mkdir -p "$HOME/.ssh" && chmod 700 "$HOME/.ssh"
     _deploy_link "$DOTFILES/ssh/rc" "$HOME/.ssh/rc"
@@ -297,7 +303,7 @@ run_step "latexmkrc"          _deploy_latexmkrc
 run_step "latexindent (single backup)" _deploy_latexindent
 run_step "Claude Code keybindings + skills" _deploy_claude
 run_step "SSH config template" _deploy_ssh_config
-run_step "ssh rc (agent link)" _deploy_ssh_rc
+run_step "ssh rc (X11 cookie)" _deploy_ssh_rc
 run_step "Bitwarden agent socket link" _deploy_bitwarden_sock
 run_step "Bitwarden agent bridge (WSL)" _deploy_wsl_agent_bridge
 run_step "Mask competing SSH agents" _mask_competing_ssh_agents

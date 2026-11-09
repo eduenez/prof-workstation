@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# tm — attach to the tmux session "main", creating it if needed, and detach every other client.
+#
+# One client at a time is what keeps ssh agent forwarding sane: tmux.conf's client-attached hook points
+# ~/.ssh/agent.sock (every pane's SSH_AUTH_SOCK) at the agent of the machine that attached last, so Bitwarden
+# approval prompts appear where you are sitting (see tmux-agent-link).
+#
+# Uses iTerm2's tmux integration (-CC: tmux windows as native tabs) only in iTerm2, also over ssh: iTerm2 sets
+# LC_TERMINAL, which ssh forwards with the LC_* variables.  -c forces -CC, -p forces a plain attach.
+#
+# If there is no "main" but a session "0" (tmux's default name), offers to rename "0" to "main" (the default) or to
+# start a new "main" beside it.
+set -uo pipefail
+
+session=main
+cc=
+[[ ${TERM_PROGRAM:-} == iTerm.app || ${LC_TERMINAL:-} == iTerm2 ]] && cc=-CC
+
+while getopts cph opt; do
+    case $opt in
+        c) cc=-CC ;;
+        p) cc= ;;
+        *) sed -n '2,/^set /{/^#/s/^# \{0,1\}//p;}' "$0"; exit 2 ;;
+    esac
+done
+
+if [[ -n ${TMUX:-} ]]; then
+    echo "tm: already inside tmux; use the session switcher (prefix s) instead." >&2
+    exit 1
+fi
+
+if ! tmux has-session -t "=$session" 2>/dev/null && tmux has-session -t "=0" 2>/dev/null; then
+    answer=y
+    if [[ -t 0 ]]; then
+        read -r -p "tm: no session \"$session\", but session \"0\" exists. Rename \"0\" to \"$session\"? [Y/n] " answer
+    fi
+    case ${answer:-y} in
+        [Nn]*) echo "tm: leaving \"0\" alone; starting a new \"$session\"." ;;
+        *)     tmux rename-session -t "=0" "$session" || exit 1 ;;
+    esac
+fi
+
+# Point the agent link at this terminal's agent now: the hook does the same on attach, but this also covers a server
+# that is not running yet (its panes start before any hook could fire) and one that predates the hook.
+link_helper="$(dirname "$(readlink -f "$0")")/tmux-agent-link"
+[[ -x $link_helper ]] && "$link_helper" $$
+
+# -A: attach if "main" exists, else create it; -D: detach every other client from it.
+exec tmux $cc new-session -A -D -s "$session"
