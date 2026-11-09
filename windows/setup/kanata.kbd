@@ -6,6 +6,11 @@
 ;; Shift+Win+V -> F13, with Shift and Win released (Windows' own Shift+Win+V, "focus a
 ;;   notification", never sees it). Ditto's "Activate Ditto" hotkey is set to F13 by pressing
 ;;   Shift+Win+V in its shortcut box while kanata runs. Win+V alone still reaches Windows.
+;; Launchers, same pattern: Shift+Win+E -> Ctrl+Alt+F14, Shift+Win+K -> Ctrl+Alt+F15 (Shift and
+;;   Win released first). These are the hotkeys of the Start-menu shortcuts "Emacs (WSL)" and
+;;   "Restart kanata" (set by packages.cmd). No keyboard has F14/F15, so you never type these
+;;   Ctrl+Alt combos and Emacs never receives them: Explorer takes them first.
+;;   Win+E and Win+K alone still reach Windows.
 ;; No layers, so nothing changes (or gets logged) when Left Ctrl is pressed.
 ;; Comments in kanata start with TWO semicolons.
 ;; Test:  kanata_windows_gui_winIOv2_x64.exe -c <this file>   (Ctrl-C to stop)
@@ -18,7 +23,7 @@
   icon-match-layer-name no
 )
 
-(defsrc caps v)
+(defsrc caps e k v)
 
 (defalias
   ;; fork: if Left Ctrl is already held, Caps Lock is a plain Caps Lock (with Ctrl released);
@@ -26,6 +31,9 @@
   cap (fork (tap-hold-press 200 1000 esc lctl) (unmod caps) (lctl))
   ;; v: if a Win key is held AND a Shift key is held -> F13 (modifiers released); otherwise plain v
   v   (fork v (fork v (unmod f13) (lsft rsft)) (lmet rmet))
+  ;; e, k: same test; Shift+Win -> Ctrl+Alt+F14 / Ctrl+Alt+F15 (launchers, see top)
+  e   (fork e (fork e (unmod lctl lalt f14) (lsft rsft)) (lmet rmet))
+  k   (fork k (fork k (unmod lctl lalt f15) (lsft rsft)) (lmet rmet))
 )
 
-(deflayer base @cap @v)
+(deflayer base @cap @e @k @v)

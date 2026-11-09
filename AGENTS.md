@@ -480,6 +480,7 @@ citizen but receives less testing.
 | `16-globalprotect` | ✓ | ✓ mac-studio 2026-10-23 |
 | `17-repos` | ✓ (macOS only) | ✓ macbook-gai (MacPorts) 2026-10-25 |
 | `18-latex-tools` | ✓ | ✓ eduardoacstudio 2026-10-25 |
+| `19-qemacs` | ✓ | builds on Ubuntu (DK's Linux VM) 2026-11-08 |
 
 Update the "Tested" column as features are exercised on the Mac Studio.
 

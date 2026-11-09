@@ -152,10 +152,13 @@ if want kanata || want kanata-user; then
             ELEV=${KANATA_ELEVATED:-yes}; want kanata-user && ELEV=no   # section "kanata-user" = no admin rights
             logon_task kanata "$KEXE" "-c $KCFG" "$ELEV"    # path has no spaces
             echo "  starts at each sign-in; start it now with: schtasks /run /tn dalekanium\\kanata"
-            # Start-menu shortcut to restart it by hand (no Ctrl+Alt hotkey: those belong to Emacs)
-            RK=$(cygpath -w "$HERE/restart-kanata.cmd")
-            run ps "\$s = (New-Object -ComObject WScript.Shell).CreateShortcut('C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Restart kanata.lnk'); \$s.TargetPath = '$RK'; \$s.WindowStyle = 7; \$s.Hotkey = ''; \$s.Save()"
-            echo "  restart by hand: Start menu 'Restart kanata' (hotkey, if wanted: PowerToys Keyboard Manager, e.g. Win+Shift+K)"
+            # Start-menu shortcut to restart it by hand; hotkey Ctrl+Alt+F15, which kanata.kbd sends for
+            # Shift+Win+K (nobody types Ctrl+Alt: those belong to Emacs).  Target is cmd.exe, not the
+            # .cmd itself, so it can also be pinned to the taskbar (Win+<slot>, works with kanata dead).
+            RK=$(cygpath -w "$HERE/restart-kanata.cmd")    # path has no spaces
+            run ps "\$s = (New-Object -ComObject WScript.Shell).CreateShortcut('C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Restart kanata.lnk'); \$s.TargetPath = 'C:\Windows\System32\cmd.exe'; \$s.Arguments = '/d /c $RK'; \$s.IconLocation = '$KEXE,0'; \$s.WindowStyle = 7; \$s.Hotkey = 'CTRL+ALT+F15'; \$s.Description = 'Restart kanata (dalekanium)'; \$s.Save()"
+            echo "  restart by hand: Shift+Win+K (kanata.kbd sends Ctrl+Alt+F15, the shortcut's hotkey),"
+            echo "    or Start menu 'Restart kanata' when kanata itself is dead"
         fi
     fi
 fi
@@ -224,10 +227,30 @@ if want emacs-wsl; then
     WSLG='C:\Program Files\WSL\wslg.exe'
     [[ -f /c/Program\ Files/WSL/wslg.exe ]] || echo "  !! $WSLG not found (WSL from the Store/winget installs it)"
     ICON='C:\msys64\ucrt64\bin\emacs.exe'
-    run ps "\$s = (New-Object -ComObject WScript.Shell).CreateShortcut('C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Emacs (WSL).lnk'); \$s.TargetPath = '$WSLG'; \$s.Arguments = '-d $D --cd ~ -- /home/$WU/.local/bin/ec'; \$s.IconLocation = '$ICON,0'; \$s.Hotkey = ''; \$s.Description = 'Emacs (WSL): frame of the daemon'; \$s.Save()"
-    echo "  pin it from the Start menu if you like; a terminal frame: Windows Terminal profile 'Emacs (WSL, terminal)'"
-    echo "  hotkey (no Ctrl+Alt: Emacs needs those): PowerToys Keyboard Manager -> Remap a shortcut -> Win+Shift+E"
-    echo "    -> Run program: $WSLG  args: -d $D --cd ~ -- /home/$WU/.local/bin/ec   (see PLAN.md)"
+    run ps "\$s = (New-Object -ComObject WScript.Shell).CreateShortcut('C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Emacs (WSL).lnk'); \$s.TargetPath = '$WSLG'; \$s.Arguments = '-d $D --cd ~ -- /home/$WU/.local/bin/ec'; \$s.IconLocation = '$ICON,0'; \$s.Hotkey = 'CTRL+ALT+F14'; \$s.Description = 'Emacs (WSL): frame of the daemon'; \$s.Save()"
+    echo "  hotkey: Shift+Win+E (kanata.kbd sends Ctrl+Alt+F14, the shortcut's hotkey; no PowerToys:"
+    echo "    its keyboard hook fights kanata).  Terminal frame: Windows Terminal 'Emacs (WSL, terminal)'"
+    # WSL stops a distro some 8-15 s after the last process started FROM WINDOWS exits; systemd
+    # services such as the Emacs daemon do not count.  The shortcut's `ec` returns at once, so the
+    # daemon (and its frame) died with the distro.  instanceIdleTimeout=-1: keep the distro running.
+    WC="$(cygpath -u "$USERPROFILE")/.wslconfig"
+    if grep -qiE '^[[:space:]]*instanceIdleTimeout[[:space:]]*=[[:space:]]*-1' "$WC" 2>/dev/null; then
+        echo "  ok       $(cygpath -w "$WC"): instanceIdleTimeout=-1"
+    elif ! $APPLY; then
+        echo "  would: set [general] instanceIdleTimeout=-1 in $(cygpath -w "$WC") (keep the distro and its daemon up)"
+    else
+        touch "$WC"
+        awk 'BEGIN { done = 0 }
+             /^[ \t]*\[/ { if (sec == "general" && !done) { print "instanceIdleTimeout=-1"; done = 1 }
+                          sec = tolower($0); gsub(/[][ \t\r]/, "", sec) }
+             sec == "general" && tolower($0) ~ /^[ \t]*instanceidletimeout[ \t]*=/ {
+                          if (!done) { print "instanceIdleTimeout=-1"; done = 1 }; next }
+             { print }
+             END { if (!done) { if (sec != "general") print "[general]"; print "instanceIdleTimeout=-1" } }' \
+            "$WC" > "$WC.tmp" && mv -f "$WC.tmp" "$WC"
+        echo "  set [general] instanceIdleTimeout=-1 in $(cygpath -w "$WC")" | tee -a "$LOG"
+        echo "  takes effect after:  wsl --shutdown   (closes WSL windows; the daemon restarts on the next ec)"
+    fi
 fi
 
 # ── WSL: Ubuntu 26.04 LTS on M: ────────────────────────────────────────

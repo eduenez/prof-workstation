@@ -70,5 +70,11 @@ graphviz
 # ── Cloud and dev tools ───────────────────────────────────────────────
 gh
 
+# ── QEmacs X11 build (features/19-qemacs.sh) ──────────────────────────
+libx11-dev
+libxext-dev
+libxrender-dev
+libxv-dev
+
 # ── Fonts (terminal Nerd Fonts not available via apt — install manually) ─
 fontconfig

@@ -46,11 +46,14 @@ unset _sage_share
 export ITERM_ENABLE_SHELL_INTEGRATION_WITH_TMUX=YES
 
 # ── Editor ────────────────────────────────────────────────────────────
-if [[ -n $SSH_CONNECTION ]]; then
-    export EDITOR='emacs -nw'
+# QEmacs (features/19-qemacs.sh) for one-off edits (git commit, crontab -e, sudoedit, less's v):
+# starts instantly and is never vi.  -nw keeps it in the terminal even where $DISPLAY is set
+# (WSLg); plain `qe` opens an X window there.  Programs use $VISUAL first, then $EDITOR.
+# Fallback where it is not built yet: Emacs in the terminal.
+if [[ -x $HOME/.local/bin/qe ]] || command -v qe &>/dev/null; then
+    export EDITOR='qe -nw' VISUAL='qe -nw'
 else
-    export EDITOR='emacs -nw'
-    export VISUAL='emacs'
+    export EDITOR='emacs -nw' VISUAL='emacs -nw'
 fi
 
 # ── Local bin (uv tools, pip --user installs) ─────────────────────────
