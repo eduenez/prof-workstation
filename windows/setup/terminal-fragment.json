@@ -26,6 +26,11 @@
             "elevate": true
         },
         {
+            "name": "Ubuntu (tmux)",
+            "commandline": "wsl.exe -d Ubuntu-26.04 --cd ~ -- zsh -lc \"exec tmux new-session -A -s main\"",
+            "icon": "C:\\Program Files\\WSL\\wsl.exe"
+        },
+        {
             "name": "Emacs (WSL, terminal)",
             "commandline": "wsl.exe -d Ubuntu-26.04 --cd ~ -- /home/eduardo/.local/bin/ec -t",
             "icon": "C:\\msys64\\ucrt64\\bin\\emacs.exe"

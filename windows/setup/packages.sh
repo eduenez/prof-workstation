@@ -277,7 +277,10 @@ if want editors; then
         ME_TMP=$(mktemp -d); ME_OK=true
         for b in mewb mecb; do
             z="windows-mingw-ucrt64-microemacs-$ME_VER-$b.zip"
-            run curl -fsSL -o "$ME_TMP/$z" "https://github.com/mittelmark/microemacs/releases/download/$ME_TAG/$z" || { ME_OK=false; continue; }
+            # curl.exe is a native Windows program and MSYS_NO_PATHCONV=1 (top) stops path translation:
+            # give it a Windows path, or it cannot write /tmp/... (exit 23).
+            # --retry: GitHub's release downloads answer 504 (gateway timeout) now and then
+            run curl -fsSL --retry 5 --retry-delay 5 -o "$(cygpath -w "$ME_TMP/$z")" "https://github.com/mittelmark/microemacs/releases/download/$ME_TAG/$z" || { ME_OK=false; continue; }
             if [[ $(sha256sum "$ME_TMP/$z" | cut -d' ' -f1) != "${ME_SHA[$b]}" ]]; then
                 echo "    !! SHA-256 mismatch: $z"; FAILED+=("microemacs: checksum $z"); ME_OK=false; continue
             fi
