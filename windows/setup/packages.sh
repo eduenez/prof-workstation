@@ -5,7 +5,7 @@
 #   M:\Eduardo\repos\prof-workstation\windows\setup\packages.cmd                 (dry run: checks every id)
 #   M:\Eduardo\repos\prof-workstation\windows\setup\packages.cmd --apply
 #   M:\Eduardo\repos\prof-workstation\windows\setup\packages.cmd --apply msys2   (only some sections)
-# Sections, in order: remove apps msys2 kanata sync syncthing emacs wsl
+# Sections, in order: remove apps msys2 kanata sync syncthing emacs wsl emacs-wsl editors
 #   remove  preinstalled Store apps in appx-remove.txt
 #   apps    winget-machine.txt, always --scope machine (never falls back to a per-user install)
 #   msys2   pacman update + msys2-packages.txt (needs MSYS2 from "apps")
@@ -18,6 +18,8 @@
 #   wsl     Ubuntu 26.04 LTS, stored on M:\WSL\Ubuntu-26.04
 #   emacs-wsl  Start-menu shortcut "Emacs (WSL)": starts WSL if needed and opens a frame
 #           of the WSL Emacs daemon (elisp's `ec`; the daemon is started by systemd/linger or by `ec`)
+#   editors MicroEmacs (small GUI Emacs-alike: Total Commander's F4) in C:\Program Files\MicroEmacs;
+#           jmacs (MSYS2 joe, Emacs keys) as Git for Windows' editor instead of vim
 # Not here (manual, see PLAN.md): Bitdefender, Microsoft 365 (UTSA), NVIDIA driver, TeX Live,
 # Ghostscript (not in winget), Tresorit (skipped for now),
 # WhatsApp and All the Unicode (Store), StartAllBack (optional), UTSA VPN.
@@ -28,7 +30,7 @@ export MSYS_NO_PATHCONV=1 MSYS2_ARG_CONV_EXCL='*'
 
 APPLY=false
 [[ ${1:-} == --apply ]] && { APPLY=true; shift; }
-SECTIONS=${*:-"remove apps msys2 kanata sync syncthing emacs wsl emacs-wsl"}
+SECTIONS=${*:-"remove apps msys2 kanata sync syncthing emacs wsl emacs-wsl editors"}
 HERE=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 LOGDIR=/c/ProgramData/dalekanium/logs
 LOG="$LOGDIR/packages-$(date +%Y%m%d-%H%M%S).log"
@@ -250,6 +252,55 @@ if want emacs-wsl; then
             "$WC" > "$WC.tmp" && mv -f "$WC.tmp" "$WC"
         echo "  set [general] instanceIdleTimeout=-1 in $(cygpath -w "$WC")" | tee -a "$LOG"
         echo "  takes effect after:  wsl --shutdown   (closes WSL windows; the daemon restarts on the next ec)"
+    fi
+fi
+
+# ── Editors: MicroEmacs (GUI) and jmacs (terminal) ─────────────────────
+# MicroEmacs = JASSPA MicroEmacs 09 (github.com/mittelmark/microemacs): Emacs keys, one ~3 MB program
+# with its macros built in, instant start; mew.exe = Windows GUI, mec.exe = console (Windows Terminal).
+# Build used: "mingw-ucrt64" = native Windows program linked to the Universal C Runtime that is part of
+# Windows 10/11 (same family as MSYS2's UCRT64 packages). The "msys" builds need MSYS2's runtime DLL,
+# the "mingw64" ones the legacy msvcrt.dll. Limitation: no Unicode (Latin-1 / Windows-1252 only).
+# jmacs = joe in Emacs mode (msys2-packages.txt); made Git for Windows' editor so git never opens vim.
+if want editors; then
+    hdr "MicroEmacs -> C:\\Program Files\\MicroEmacs; jmacs as Git for Windows' editor"
+    ME_TAG=v09.12.26; ME_VER=091226
+    ME_DIR='/c/Program Files/MicroEmacs'
+    declare -A ME_SHA=(   # from the release's windows-mingw-ucrt64-microemacs-$ME_VER.sha256
+        [mewb]=a828d4bce60d382faad3af851e1f14a8bbad449072dc732756e3a658ecf10fe3
+        [mecb]=58d383b5caf3da415d9b471ec3cd3f91e38dd6282dfb6bb3448e93b66856f6c4 )
+    if [[ -x "$ME_DIR/mew.exe" && $(cat "$ME_DIR/version.txt" 2>/dev/null) == "$ME_VER" ]]; then
+        echo "  ok       MicroEmacs $ME_VER in C:\\Program Files\\MicroEmacs"
+    elif ! $APPLY; then
+        echo "  would: download MicroEmacs $ME_TAG (mingw-ucrt64 mewb + mecb), check SHA-256, install mew.exe + mec.exe"
+    else
+        ME_TMP=$(mktemp -d); ME_OK=true
+        for b in mewb mecb; do
+            z="windows-mingw-ucrt64-microemacs-$ME_VER-$b.zip"
+            run curl -fsSL -o "$ME_TMP/$z" "https://github.com/mittelmark/microemacs/releases/download/$ME_TAG/$z" || { ME_OK=false; continue; }
+            if [[ $(sha256sum "$ME_TMP/$z" | cut -d' ' -f1) != "${ME_SHA[$b]}" ]]; then
+                echo "    !! SHA-256 mismatch: $z"; FAILED+=("microemacs: checksum $z"); ME_OK=false; continue
+            fi
+            run ps "Expand-Archive -Force -LiteralPath '$(cygpath -w "$ME_TMP/$z")' -DestinationPath '$(cygpath -w "$ME_TMP")'" || ME_OK=false
+        done
+        if $ME_OK; then
+            run mkdir -p "$ME_DIR"
+            run cp "$ME_TMP/windows-mingw-ucrt64-microemacs-$ME_VER-mewb/bin/mewb.exe" "$ME_DIR/mew.exe"
+            run cp "$ME_TMP/windows-mingw-ucrt64-microemacs-$ME_VER-mecb/bin/mecb.exe" "$ME_DIR/mec.exe"
+            run cp -r "$ME_TMP/windows-mingw-ucrt64-microemacs-$ME_VER-mewb/share/microemacs/." "$ME_DIR/"
+            echo "$ME_VER" > "$ME_DIR/version.txt"
+            MEW=$(cygpath -w "$ME_DIR/mew.exe")
+            run ps "\$s = (New-Object -ComObject WScript.Shell).CreateShortcut('C:\ProgramData\Microsoft\Windows\Start Menu\Programs\MicroEmacs.lnk'); \$s.TargetPath = '$MEW'; \$s.WorkingDirectory = 'M:\Eduardo'; \$s.Save()"
+        fi
+        rm -rf "$ME_TMP"
+    fi
+    echo "  first start: mew.exe, then Esc x user-setup (user name, keyboard); settings go to %APPDATA%\\jasspa"
+    echo "  Total Commander F4 (by hand: TC rewrites wincmd.ini on exit): Configuration -> Options ->"
+    echo "    Edit/View -> Editor: C:\\Program Files\\MicroEmacs\\mew.exe"
+    if [[ -x /c/msys64/usr/bin/jmacs.exe ]]; then
+        run git.exe config --global core.editor C:/msys64/usr/bin/jmacs.exe
+    else
+        echo "  jmacs not installed yet: run section msys2 first (msys2-packages.txt has joe)"
     fi
 fi
 

@@ -87,6 +87,7 @@ cask "iterm2"
 
 # ── Editors and IDE ───────────────────────────────────────────────────
 cask "emacs"
+brew "joe"               # jmacs: joe with Emacs keys, a light terminal editor
 cask "visual-studio-code"
 
 # ── Browsers ──────────────────────────────────────────────────────────

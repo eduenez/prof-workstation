@@ -69,6 +69,7 @@ graphviz
 
 # ── Cloud and dev tools ───────────────────────────────────────────────
 gh
+joe                 # jmacs: joe with Emacs keys, a light terminal editor
 
 # ── QEmacs X11 build (features/19-qemacs.sh) ──────────────────────────
 libx11-dev

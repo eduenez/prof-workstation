@@ -29,6 +29,24 @@
             "name": "Emacs (WSL, terminal)",
             "commandline": "wsl.exe -d Ubuntu-26.04 --cd ~ -- /home/eduardo/.local/bin/ec -t",
             "icon": "C:\\msys64\\ucrt64\\bin\\emacs.exe"
+        },
+        {
+            "name": "MSYS2 UCRT64",
+            "commandline": "C:\\msys64\\usr\\bin\\env.exe MSYSTEM=UCRT64 CHERE_INVOKING=1 MSYS2_PATH_TYPE=inherit /usr/bin/bash -l",
+            "icon": "C:\\msys64\\ucrt64.ico",
+            "startingDirectory": "M:\\Eduardo"
+        },
+        {
+            "name": "Midnight Commander",
+            "commandline": "C:\\msys64\\usr\\bin\\env.exe MSYSTEM=UCRT64 CHERE_INVOKING=1 MSYS2_PATH_TYPE=inherit /usr/bin/bash -lc mc",
+            "icon": "C:\\msys64\\msys2.ico",
+            "startingDirectory": "M:\\Eduardo"
+        },
+        {
+            "name": "FAR Manager",
+            "commandline": "%ProgramFiles%\\Far Manager\\Far.exe",
+            "icon": "%ProgramFiles%\\Far Manager\\Far.exe",
+            "startingDirectory": "M:\\Eduardo"
         }
     ]
 }
