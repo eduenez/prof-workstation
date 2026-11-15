@@ -224,8 +224,11 @@ machine (MacPorts). The `dotfiles/` are adapted from `~/.zshrc`, `~/.zprofile`,
   tests in `repos/tests/`): `repos` = parallel `git fetch --all --prune`, then
   `git merge --ff-only @{u}` on the current branch only where safe; `repos fetch`, `repos status`,
   `repos list`. Never rebases, resets, stashes, checks out or pushes; diverged, detached and
-  merge-in-progress repositories are only reported; `monorepo` is fetch-only by default
-  (`~/.config/repos/config.toml`, optional).
+  merge-in-progress repositories are only reported. `monorepo` (employer repository) was fetch-only
+  at first; since 2026-11-15 (site-tools `f6ac655`) it is excluded by default (never fetched, merged
+  or cloned) and allowed per machine with `allow_monorepo = true` in `~/.config/repos/config.toml`:
+  only on ChatEDG, `macbook-gai`, `dalekanium`; never on the UTSA machines (`macbook-utsa`,
+  `mac-studio`), where it must not exist.
 - New `features/17-repos.sh`: clones `site-tools` to `~/repos/site-tools` (a private repository:
   if the clone is impossible, e.g. another account, the feature warns and exits 0), symlinks
   `repos` into `~/.local/bin`, and installs the LaunchAgent `com.eduenez.repos.fetch` (hourly
