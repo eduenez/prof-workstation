@@ -10,6 +10,8 @@ build-essential
 clang
 # flex: features/15-detex.sh builds a patched detex
 flex
+# catdvi: Recoll extracts text from .dvi files with it
+catdvi
 cmake
 automake
 autoconf

@@ -54,7 +54,22 @@ _install_pyright() {
     uv tool install pyright
 }
 
+# `jupyter nbconvert` on PATH: Recoll indexes .ipynb through it (Linux: ~/.local/bin is on recollindex.service's PATH).
+_install_nbconvert() {
+    if ! command_exists uv; then
+        warn "uv not found — skipping nbconvert install."
+        return 1
+    fi
+    if uv tool list 2>/dev/null | grep -q '^jupyter-core'; then
+        info "jupyter nbconvert already installed."
+        return 0
+    fi
+    info "Installing jupyter + nbconvert via uv tool..."
+    uv tool install jupyter-core --with nbconvert --with-executables-from nbconvert
+}
+
 run_step "uv"                    _install_uv
 run_step "Python $PYTHON_VERSION" _install_python
 run_step "pyright (Python LSP)"  _install_pyright
+run_step "jupyter nbconvert"     _install_nbconvert
 summary_report

@@ -134,12 +134,25 @@ machine (MacPorts). The `dotfiles/` are adapted from `~/.zshrc`, `~/.zprofile`,
 - Fixed upstream in https://github.com/pkubowicz/opendetex/pull/91 (pending).
   Until it ships in TeX Live, new `features/15-detex.sh` builds OpenDetex at a
   pinned commit with `patches/opendetex-includeonly.patch` into
-  `~/.local/bin` (first on `recollhelperpath` and on PATH via `zshrc`). It
+  `~/.local/bin` (on PATH via `zshrc`). It
   probes the detex on PATH first and skips when it doesn't crash, so it goes
   inert once a fixed TeX Live lands; then delete the feature and patch.
   Needs `flex` (added to `lists/apt-packages.txt`; Xcode CLT ships it).
   After installing, re-index affected files once with `recollindex -i`
   (stop `recollindex.service` first) — Recoll won't retry unchanged files.
+- **2026-11-15 correction:** `recollhelperpath` does not reach `rcltex`. It is a
+  shell filter that finds `detex` on `$PATH`, and the systemd user units' PATH
+  lacks `~/.local/bin`, so `recollindex.service` kept running TeX Live's
+  crashing `/usr/bin/detex` (Apport reports). Fixed on ChatEDG with drop-ins
+  `~/.config/systemd/user/{recollindex,recoll-reconcile}.service.d/path.conf`
+  that put `%h/.local/bin` first in PATH. Neither the drop-ins nor the
+  Recoll units are managed by this repository. Re-indexing: files detex
+  crashed on were stored as indexed with empty text, so neither
+  `recollindex -k` (retries only recorded failures) nor `-i` alone (skips
+  unchanged files) refreshes them; `recollindex -e` then `-i` on the list does.
+- Same day, for Recoll's other helpers: `jupyter nbconvert` (`.ipynb`) via a uv
+  tool in `07-python`, and `catdvi` (`.dvi`) in `lists/apt-packages.txt`.
+  Retry those with `recollindex -k` (they were recorded as failures).
 - Added `clang` to `lists/apt-packages.txt` (used to test the detex PR).
 - New `dotfiles/ghostty/config.ghostty` (adopted from ChatEDG, deployed by
   `04-dotfiles`) with `shell-integration-features = ssh-env,ssh-terminfo`:
