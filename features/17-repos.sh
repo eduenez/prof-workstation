@@ -5,12 +5,11 @@
 # the LaunchAgent com.eduenez.repos.fetch (hourly `repos fetch --no-ssh`: fetch only, never fast-forwards unattended).
 # The plist is kept in site-tools next to the tool and is copied here verbatim ($HOME is expanded by /bin/sh inside it), so
 # re-running after `git pull` in site-tools refreshes the installed agent. Independent of Homebrew, so it also works on the MacPorts
-# machines. macOS only (launchd).
+# machines. On Linux the agent is the systemd user timer repos-fetch.timer, installed by site-tools' repos/install-systemd.sh.
 #   REPOS_NO_AGENT=1 bash install.sh repos     link the tool but do not install the agent
 #   remove the agent:  launchctl bootout gui/$(id -u)/com.eduenez.repos.fetch && rm ~/Library/LaunchAgents/com.eduenez.repos.fetch.plist
+#                      (Linux: ~/repos/site-tools/repos/install-systemd.sh --uninstall)
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/lib/common.sh"
-
-[[ "$OS" != "Darwin" ]] && { info "macOS only (launchd) — skipping."; exit 0; }
 
 TOOLS_REPO="$HOME/repos/site-tools"
 TOOLS_REMOTE="https://github.com/eduenez/site-tools.git"
@@ -62,6 +61,11 @@ _install_agent() {
         info "REPOS_NO_AGENT=1 — not installing the LaunchAgent."
         return 0
     fi
+    if [[ "$OS" != "Darwin" ]]; then
+        command_exists systemctl || { warn "systemctl not found — not installing the hourly fetch timer."; return 0; }
+        sh "$TOOLS_REPO/repos/install-systemd.sh"
+        return
+    fi
     [[ -f "$PLIST_SRC" ]] || { err "$PLIST_SRC not found (site-tools out of date? git pull)."; return 1; }
     plutil -lint "$PLIST_SRC" >/dev/null || { err "$PLIST_SRC is not a valid plist."; return 1; }
     mkdir -p "$HOME/Library/LaunchAgents" "$HOME/Library/Logs"
@@ -80,5 +84,5 @@ _install_agent() {
 
 run_step "Clone site-tools"                 _clone_tools
 run_step "repos in ~/.local/bin"            _link_tool
-run_step "Hourly fetch LaunchAgent"         _install_agent
+run_step "Hourly fetch agent"              _install_agent
 summary_report

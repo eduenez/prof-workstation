@@ -48,7 +48,7 @@ tools, fonts, and GUI applications.
 | `lean` | Lean 4 formal verification environment via `elan` |
 | `detex` | Patched `detex` in `~/.local/bin` (TeX Live's crashes on `\includeonly -n`, breaking Recoll) |
 | `globalprotect` | macOS: `gp-on` / `gp-off` in `~/.local/bin`; stops GlobalProtect (UTSA VPN) autostarting at login |
-| `repos` | macOS: the `repos` tool (fetch every clone, fast-forward where safe; from the private `site-tools` repo) in `~/.local/bin`, plus an hourly fetch-only LaunchAgent |
+| `repos` | the `repos` tool (fetch every clone, fast-forward where safe; from the private `site-tools` repo) in `~/.local/bin`, plus an hourly fetch-only LaunchAgent (macOS) or systemd user timer (Linux) |
 
 **Homebrew Brewfile covers:**
 core Unix tools · Git · TeX Live (via `mactex-no-gui`) · pandoc · gnuplot ·
@@ -196,7 +196,7 @@ prof-workstation/
 │   ├── 14-lean.sh
 │   ├── 15-detex.sh     # skips itself once TeX Live's detex is fixed
 │   ├── 16-globalprotect.sh  # macOS only; also fine on MacPorts machines
-│   ├── 17-repos.sh     # macOS only; clones site-tools, links `repos`, installs the fetch LaunchAgent
+│   ├── 17-repos.sh     # clones site-tools, links `repos`, installs the hourly fetch (LaunchAgent / systemd timer)
 │   └── 18-latex-tools.sh  # bibtex-tidy at the version pinned in math-bibliography
 ├── dotfiles/
 │   ├── zshrc
