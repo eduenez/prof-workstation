@@ -71,6 +71,19 @@ _deploy_gitconfig() {
     info "Deployed ~/.gitconfig (name=$git_name, email=$git_email)"
 }
 
+# gitconfig sets core.excludesfile = ~/.gitignore_global, which replaces git's default
+# ~/.config/git/ignore; if the named file is missing, no global ignore rules apply at all.
+# Link it to the XDG file (created empty if absent) so rules kept there still work.
+_deploy_gitignore_global() {
+    local dest="$HOME/.gitignore_global" xdg="$HOME/.config/git/ignore"
+    if [[ -e "$dest" || -L "$dest" ]]; then
+        info "~/.gitignore_global already exists — skipping."
+        return 0
+    fi
+    mkdir -p "$(dirname "$xdg")" && touch "$xdg" || return 1
+    ln -s "$xdg" "$dest" && info "~/.gitignore_global → $xdg"
+}
+
 # Also `tm` (attach to "main") and tmux-agent-link (tmux.conf's client-attached hook), in ~/.local/bin.
 _deploy_tmux() {
     _deploy_link "$DOTFILES/tmux.conf" "$HOME/.tmux.conf"
@@ -297,6 +310,7 @@ _deploy_mc() {
 run_step "Oh My Zsh"          _install_oh_my_zsh
 run_step "zshrc + zprofile"   _deploy_shell_config
 run_step "gitconfig"          _deploy_gitconfig
+run_step "global gitignore"   _deploy_gitignore_global
 run_step "tmux.conf"          _deploy_tmux
 run_step "Ghostty config"     _deploy_ghostty
 run_step "latexmkrc"          _deploy_latexmkrc

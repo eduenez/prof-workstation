@@ -11,6 +11,13 @@ _check_gh() {
     fi
     if gh auth status &>/dev/null; then
         info "GitHub CLI: authenticated."
+        # Outside macOS (no osxkeychain; see 04-dotfiles) gh is git's https credential helper,
+        # so private repositories cloned over https fetch without a prompt.
+        if [[ "$OS" != "Darwin" ]] &&
+           ! git config --global --get-all credential.https://github.com.helper 2>/dev/null | grep -q 'gh auth git-credential'; then
+            info "  Making gh git's credential helper for github.com (gh auth setup-git)."
+            gh auth setup-git || return 1
+        fi
     else
         warn "GitHub CLI: not authenticated."
         warn "  Run: gh auth login"

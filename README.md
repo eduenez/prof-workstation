@@ -35,13 +35,13 @@ tools, fonts, and GUI applications.
 | `pkgmgr` | Homebrew (macOS) / apt update (Linux) |
 | `brew-bundle` | All Homebrew packages, casks, and fonts via `Brewfile` |
 | `apt-pkgs` | Equivalent apt packages (Linux / WSL) |
-| `dotfiles` | Shell config, Git, tmux, Ghostty, SSH skeleton, Karabiner, Claude Code keybindings + skills; on WSL a bridge to the Windows Bitwarden SSH agent |
+| `dotfiles` | Shell config, Git (+ `~/.gitignore_global` → `~/.config/git/ignore`), tmux, Ghostty, SSH skeleton, Karabiner, Claude Code keybindings + skills; on WSL a bridge to the Windows Bitwarden SSH agent |
 | `emacs` | Emacs.app + `elisp` repo clone + elpaca bootstrap |
 | `vscode` | VS Code + extension list |
 | `python` | `uv` — Python versions, virtualenvs, and packages |
 | `ruby` | `rbenv` + `bundler` |
 | `r-pkgs` | R package bootstrap script |
-| `cloud` | GitHub CLI (`gh`) and Google Cloud SDK (`gcloud`) auth |
+| `cloud` | GitHub CLI (`gh`) and Google Cloud SDK (`gcloud`) auth; outside macOS, `gh` as git's https credential helper |
 | `ai-tools` | Ollama, Claude CLI, Gemini CLI |
 | `macos-prefs` | Dock, Finder, keyboard settings, and dev-friendly defaults |
 | `secrets` | Printed checklist: SSH keys, auth tokens, API keys |

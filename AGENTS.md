@@ -397,6 +397,18 @@ machine (MacPorts). The `dotfiles/` are adapted from `~/.zshrc`, `~/.zprofile`,
   but always replaces the file, so the spurious diffs return. The MacPorts machines already have
   it (`port install qpdf` if one doesn't).
 
+### 2026-11-15 — global gitignore link; gh as credential helper on Linux (Claude Opus 5.5 / Claude Code)
+
+- `gitconfig.template` sets `core.excludesfile = ~/.gitignore_global`, which replaces git's default
+  `~/.config/git/ignore`. On ChatEDG that file did not exist, so **no** global ignore rule applied, and
+  `**/.claude/settings.local.json` (kept in `~/.config/git/ignore`) was silently no longer ignored.
+  New `04-dotfiles` step `_deploy_gitignore_global`: if `~/.gitignore_global` is absent, link it to
+  `~/.config/git/ignore` (created empty if absent); an existing file or link is left alone.
+  Check the Macs: `git check-ignore -v .claude/settings.local.json` in any repository.
+- `10-cloud`: when `gh` is logged in and the OS is not macOS (where `osxkeychain` does this), run
+  `gh auth setup-git` unless gh already is the github.com credential helper, so private repositories
+  cloned over https fetch without a prompt. Tested with `GIT_CONFIG_GLOBAL` on a scratch file.
+
 ## Architecture
 
 ```
