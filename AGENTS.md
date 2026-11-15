@@ -536,6 +536,39 @@ Update the "Tested" column as features are exercised on the Mac Studio.
 
 ## Known issues and TODOs
 
+- **Global gitignore may be inactive on machines set up before 2026-11-15** (see that day's
+  session note). Fixed on ChatEDG only. **Unchecked:** `mac-studio`, `macbook-gai`,
+  `macbook-utsa`, `eduardoacstudio`, and WSL on `dalekanium`. The owner is not acting on this
+  right away, so an agent working on one of those machines should run the check below and tell
+  the owner before changing anything. Procedure:
+  1. **Check** (read-only; the file need not exist):
+     ```bash
+     git config --global --get core.excludesfile        # the template sets ~/.gitignore_global
+     ls -l ~/.gitignore_global ~/.config/git/ignore
+     cd ~/repos/prof-workstation && git check-ignore -v .claude/settings.local.json
+     ```
+     If the last line prints a rule, this machine is fine. If it prints nothing, go on.
+  2. **Fix, depending on what step 1 showed:**
+     - `excludesfile` is unset: git already reads `~/.config/git/ignore`, so the rule is missing
+       from that file. Add `**/.claude/settings.local.json` to it.
+     - `~/.gitignore_global` is missing: `mkdir -p ~/.config/git && touch ~/.config/git/ignore &&
+       ln -s ~/.config/git/ignore ~/.gitignore_global`. This is `04-dotfiles`'
+       `_deploy_gitignore_global`, but run it by hand: `bash install.sh dotfiles` runs every
+       dotfile step (see 2026-09-16).
+     - Both are real files: only `~/.gitignore_global` is read, so rules in
+       `~/.config/git/ignore` are lost. Show the owner both files, merge them into
+       `~/.config/git/ignore`, back up `~/.gitignore_global` (dated `.bak`), then link it as above.
+       Never delete either file without showing it first.
+     - `~/.gitignore_global` exists and is read, but has no `.claude` rule: add the rule to it.
+  3. **Look for leaks** while the rule was inactive (Claude Code's per-project settings can hold
+     permission lists and paths):
+     ```bash
+     for r in ~/repos/*/; do git -C "$r" ls-files -- '.claude/settings.local.json' '*/.claude/settings.local.json' 2>/dev/null | sed "s|^|$r|"; done
+     ```
+     Report any hit to the owner; removing one from git (`git rm --cached`) is their call. None on
+     ChatEDG (2026-11-15).
+  4. **Record** the result here: move the machine from "Unchecked" to a line under this item.
+
 - **`bat` on Ubuntu <22.04** installs as `batcat`; a manual symlink or alias
   is needed. Consider adding a post-install note in `03-apt-pkgs.sh`.
 
