@@ -152,6 +152,25 @@ _deploy_ssh_config() {
     info "Deployed ~/.ssh/config template — fill in host entries manually."
 }
 
+# ~/.ssh/github.conf (shared GitHub connection, see the file) is linked from the repo, and ~/.ssh/config — a one-time
+# copy the user edits — gets an Include for it near the top: ssh takes the first value it reads for each option, so the
+# Include must come before any Host block (in particular before `Host *`).
+_deploy_ssh_github() {
+    local cfg="$HOME/.ssh/config" line="Include ~/.ssh/github.conf"
+    mkdir -p "$HOME/.ssh" && chmod 700 "$HOME/.ssh"
+    _deploy_link "$DOTFILES/ssh/github.conf" "$HOME/.ssh/github.conf"
+    [[ -f "$cfg" ]] || { warn "~/.ssh/config missing — Include not added."; return 1; }
+    if grep -qxF "$line" "$cfg"; then
+        info "  ~/.ssh/config already Includes github.conf."
+        return 0
+    fi
+    local tmp; tmp="$(mktemp)"
+    # Insert before the first Host/Match line (after any leading Includes and comments).
+    awk -v inc="$line" '!done && /^[[:space:]]*(Host|Match)[[:space:]]/ { print inc; print ""; done=1 } { print } END { if (!done) print inc }' \
+        "$cfg" > "$tmp" && cat "$tmp" > "$cfg" && rm -f "$tmp"
+    info "  Added '$line' to ~/.ssh/config."
+}
+
 # sshd runs ~/.ssh/rc at login; it skips its own X11 cookie setup when the file exists, so rc does it.
 _deploy_ssh_rc() {
     mkdir -p "$HOME/.ssh" && chmod 700 "$HOME/.ssh"
@@ -318,6 +337,7 @@ run_step "latexindent (single backup)" _deploy_latexindent
 run_step "Claude Code keybindings + skills" _deploy_claude
 run_step "SSH config template" _deploy_ssh_config
 run_step "ssh rc (X11 cookie)" _deploy_ssh_rc
+run_step "ssh shared GitHub connection" _deploy_ssh_github
 run_step "Bitwarden agent socket link" _deploy_bitwarden_sock
 run_step "Bitwarden agent bridge (WSL)" _deploy_wsl_agent_bridge
 run_step "Mask competing SSH agents" _mask_competing_ssh_agents
