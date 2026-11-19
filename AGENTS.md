@@ -303,7 +303,9 @@ machine (MacPorts). The `dotfiles/` are adapted from `~/.zshrc`, `~/.zprofile`,
 ### 2026-11-04 — Claude Code keybindings and personal skills (Claude Opus 5.5 / Claude Code)
 
 - New `dotfiles/claude/`: `keybindings.json` (unbinds Ctrl+L, whose default
-  `chat:clearInput` wipes the draft prompt irrecoverably) and `skills/<name>/SKILL.md`
+  `chat:clearInput` wipes the draft prompt irrecoverably; since 2026-11-18 also Ctrl+S, whose
+  `chat:stash` keeps a single slot, so a second press with new text overwrites the earlier stash)
+  and `skills/<name>/SKILL.md`
   for the teaching workflows: `course-problem-set`, `course-exam`, `psc-problem-set`,
   `publish-problem-set`. They drive `~/repos/course-data`, `teaching/problem-bank`,
   `teaching/ProblemSolving/ProblemSetsPSC`, `courses` and `psclub`; on a machine without
