@@ -472,6 +472,24 @@ machine (MacPorts). The `dotfiles/` are adapted from `~/.zshrc`, `~/.zprofile`,
   OK) and have it stick, `chmod u+w ~/.config/mc/ini` first; the next
   `bash install.sh dotfiles` re-locks it.
 
+### 2026-11-22 — Ghostty: Cmd-W sends M-w instead of closing the tab (Claude Sonnet 5.5 / Claude Code)
+
+- Follow-up to the tmux-copy-mode-vs-Emacs-mouse troubleshooting above, same day: the owner's
+  pure-keyboard-copy-mode workaround (`C-SPC` … `M-w`) failed because macOS intercepts Cmd-W as
+  "close this tab" before Ghostty ever forwards the key, and GUI Emacs.app's own
+  `mac-command-modifier = 'meta` habit (Cmd-W = M-w there) doesn't carry over to a terminal, where
+  Cmd-W belongs to the OS, not Emacs. `macos-option-as-alt = left` already makes *Option*-w send a
+  real M-w, but that's not the muscle memory the owner has.
+- Added `keybind = super+w=esc:w` to `dotfiles/ghostty/config.ghostty`'s "Keys Emacs needs" section:
+  Cmd-W now sends a literal `ESC w` (confirmed via `ghostty +list-actions --docs`: `esc:` "Send an
+  `ESC` sequence", same shape as the existing `csi:27;5;9~` bindings) — exactly what Option-w
+  already produces — so it reaches tmux copy-mode's own `M-w` (copy selection) and Emacs's `M-w`
+  alike. Deliberate trade-off, accepted by the owner: Cmd-W no longer closes a tab (Ghostty's menu
+  Close still does). Validated with `ghostty +validate-config --config-file=dotfiles/ghostty/config.ghostty`
+  (exit 0) on `mac-studio`, where the Ghostty app bundle is present but isn't the daily driver — the
+  owner's actual Ghostty is on the MacBook, so this needs `git pull && bash install.sh dotfiles`
+  there, then `cmd+shift+,` to reload (no restart needed; documented at the top of the file).
+
 ## Architecture
 
 ```

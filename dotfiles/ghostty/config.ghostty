@@ -90,3 +90,12 @@ keybind = ctrl+shift+arrow_left=unbind
 keybind = ctrl+shift+arrow_right=unbind
 keybind = ctrl+shift+arrow_up=unbind
 keybind = ctrl+shift+arrow_down=unbind
+
+# Cmd-W (macOS only): GUI Emacs.app binds Cmd as Meta, so M-w (kill-ring-save)
+# is muscle memory on Cmd-W there — but a terminal's Cmd-W is the OS's own
+# "close this tab/window", intercepted before Ghostty ever forwards a key.
+# Send the real M-w sequence (ESC w, same as physical Option-w under
+# macos-option-as-alt above) instead: works for tmux copy-mode's own M-w
+# (copy selection) as well as Emacs's. Deliberately gives up closing a tab
+# via Cmd-W — use the Ghostty menu's Close instead.
+keybind = super+w=esc:w
