@@ -414,6 +414,64 @@ machine (MacPorts). The `dotfiles/` are adapted from `~/.zshrc`, `~/.zprofile`,
   `gh auth setup-git` unless gh already is the github.com credential helper, so private repositories
   cloned over https fetch without a prompt. Tested with `GIT_CONFIG_GLOBAL` on a scratch file.
 
+### 2026-11-21 — MC: lynx-like motion, F2 menu modeled on Dired (Claude Sonnet 5.5 / Claude Code)
+
+- `navigate_with_arrows` (the ini key behind Options > Panel options' "Lynx-like motion";
+  lives in `[Panels]`, but `_mc_set_key` matches the key name anywhere in the file) pinned
+  `true` in `04-dotfiles.sh`: Left goes to the parent directory, Right enters a
+  directory/opens a file, matching Dired's quick directory stepping instead of arrow keys
+  only moving the panel cursor.
+- New `dotfiles/mc/menu` replaces the upstream F2 user menu (found at
+  `$(brew --prefix mc)/etc/mc/menu` — system path is `mc.menu`, the per-user override read
+  first is `~/.config/mc/menu`), linked there by `_deploy_mc`. Dropped the mid-1990s entries
+  that don't apply here: mailing a bug report to root, Usenet newsbatch/uudecode/header
+  stripping, `roff -man` display, and the ad hoc C-compile shortcut. Added entries modeled on
+  Dired/Dirvish operations already in daily use: dired-dwim-target (`s`/`H` symlink/hardlink
+  into the other panel), dired-diff (`c`: compare against the same-named file in the other
+  panel), dired-do-compress-to (`a`: name the output archive, its extension picks the tool via
+  `tar caf`/`zip`), plus `e` (emacsclient handoff — a directory opens Dired), `d`/`D` (disk
+  usage), `g`/`l` (git status/log of this directory or file).
+- Verified the ini keys land and the menu symlinks correctly
+  (`grep -E '^skin=|^auto_save_setup=|^navigate_with_arrows=' ~/.config/mc/ini`); could not
+  launch an interactive `mc` session in this environment to click through the new F2 entries,
+  so check them by hand on next use.
+- The same `bash install.sh dotfiles` run also re-applied `skin=`/`auto_save_setup=` — i.e.
+  `~/.config/mc/ini` had drifted back to stock defaults again (mtime `Nov 10`) since they were
+  last pinned. This is at least the third time (`04-dotfiles.sh`'s `_deploy_mc`/`_mc_set_key`
+  comments cover the first two causes: an in-session skin preview getting autosaved, and the
+  whole file being deleted/regenerated once). Still unexplained; flagged to the owner, not
+  re-investigated this session.
+
+### 2026-11-22 — MC ini resets: root cause and a permanent lock (Claude Sonnet 5.5 / Claude Code)
+
+- Root cause, found and fixed same day: an `mc` process had been running for 26+ days in a
+  persistent tmux pane (`main:1.1`), started Oct 26 — mid the original skin/auto_save_setup
+  troubleshooting, apparently just before that fix landed — and never exited. `tmux
+  capture-pane` (read-only) showed it still rendering the stock default skin and the old
+  upstream F2 menu: it loaded its config once at startup and had been carrying that stale,
+  pre-fix snapshot in memory ever since (`lsof` confirmed it doesn't hold the ini file open).
+  mc's Options dialogs (Panel options, Appearance, ...) and Options > Save setup write the
+  *whole* ini immediately on confirm, independent of `auto_save_setup` — so any accidental
+  dialog confirm in that one 26-day-old pane, at any point, would reset the file to Oct 26's
+  values. That explains a reset happening long after the file was last correctly written, with
+  no process exit in between. Owner had it quit (killed cleanly, confirmed via `ps -p`) — and
+  that very quit immediately re-triggered the reset one more time (its in-memory
+  `auto_save_setup` was still `true`), caught and fixed in the same run.
+- Permanent fix: `_deploy_mc` now `chmod 444`s `~/.config/mc/ini` after writing it, on both
+  macOS and Linux — no `chflags`/`chattr` needed. Verified empirically (isolated test ini
+  under a scratch `XDG_CONFIG_HOME`, scripted keystrokes via `tmux send-keys` to reach Options
+  > Save setup) that mc writes the ini with a plain truncating `open()`, not a
+  write-temp-then-rename, so a read-only file makes that write fail outright (mc just shows a
+  "Cannot save file" message and keeps running) — this requires no special privilege on either
+  OS since it's an ordinary permission bit, unlike Linux's `chattr +i` (needs
+  `CAP_LINUX_IMMUTABLE`, i.e. root) or even macOS's own `chflags schg` (root-only; `uchg` would
+  have worked too, owner-toggleable, but plain `chmod` already does the job and needs no
+  OS-specific command at all). `_mc_set_key`'s own edits still land post-lock: it replaces the
+  file via `mv` (rename), which only needs write access to the directory, not to the file being
+  replaced. To change a setting via the UI again (Options > Save setup, or any Options dialog's
+  OK) and have it stick, `chmod u+w ~/.config/mc/ini` first; the next
+  `bash install.sh dotfiles` re-locks it.
+
 ## Architecture
 
 ```

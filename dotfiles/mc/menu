@@ -1,0 +1,100 @@
+shell_patterns=0
+
+##############################################################################
+#   %%  The % character
+#   %f  The current file (if non-local vfs, file will be copied locally and
+#                         %f will be full path to it)
+#   %p  The current file
+#   %d  The current working directory
+#   %D  The other panel's directory
+#   %s  "Selected files"; the tagged files if any, otherwise the current file
+#   %t  Tagged files
+#   %u  Tagged files (and they are untagged on return from expand_format)
+#   %view Runs the commands and pipes standard output to the view command
+#
+#   Condition sub-conds: f/F <pattern> (current/other file), d/D <pattern>
+#   (current/other dir), t <type> (n/r/d/l/x/t ...), x <path> (executable
+#   exists), ! negates. `+ cond` includes the entry only if cond holds;
+#   `= cond` just makes it the default selection. See `man mc`.
+##############################################################################
+
+# prof-workstation custom F2 menu (dotfiles/mc/menu -> ~/.config/mc/menu).
+# Dropped from the upstream mc.menu (found at
+# $(brew --prefix mc)/etc/mc/mc.menu): mailing a bug report to root, Usenet
+# newsbatch/uudecode/header-stripping, "roff -man" display, and the ad hoc
+# C-compile shortcut (typing `cc -O -o foo foo.c` directly isn't any harder
+# than invoking this menu for it). What's below is modeled on Dired/Dirvish
+# operations already in daily use: dired-dwim-target (the other panel is
+# always the implied destination for symlink/hardlink), dired-diff (`=`),
+# and dired-do-compress-to (name the output file; its extension picks the
+# tool, same idea as archiving here).
+
++ ! t t
+@       Do something on the current file
+        CMD=%{Enter command}
+        $CMD %f
+
++ t t
+@       Do something on the tagged files
+        CMD=%{Enter command}
+        for i in %t ; do
+            $CMD "$i"
+        done
+
+e       Open in Emacs (emacsclient -n; a directory opens Dired)
+        emacsclient -n %f 2>/dev/null || emacs -nw %f
+
++ t r & ! t t
+c       Compare (diff) against the file of the same name in the other panel
+        if [ -f %D/%f ]; then
+            diff -u -- %f %D/%f | ${PAGER:-less}
+        else
+            echo %f": no file of that name in "%D
+            echo -n "Press RETURN "; read key
+        fi
+
+s       Symlink into the other panel (dired-dwim-target)
+        for i in %s ; do
+            ln -s -- "$PWD/$i" "%D/$i"
+        done
+
+H       Hardlink into the other panel (dired-dwim-target)
+        for i in %s ; do
+            ln -- "$i" "%D/$i"
+        done
+
+a       Archive tagged/current file(s) -- name it, the extension picks the tool
+        OUT=%{Archive name (foo.tar.gz / foo.tar.xz / foo.tar.zst / foo.zip)}
+        [ -z "$OUT" ] && exit 1
+        case "$OUT" in
+            *.zip) zip -r -- "$OUT" %s ;;
+            *)     tar caf "$OUT" -- %s ;;    # -a: pick compressor from $OUT's extension
+        esac
+        echo "$OUT created."
+
++ f \.tar\.gz$ | f \.tgz$ | f \.tar\.xz$ | f \.tar\.zst$ | f \.tar\.bz2$ & t r & ! t t
+x       Extract to a subdirectory here
+        D=$(basename %f | sed -E 's/\.(tar\.(gz|xz|zst|bz2)|tgz)$//')
+        mkdir -p "$D" && tar xf %f -C "$D"   # tar auto-detects the compression
+
+d       Disk usage of the tagged files, or this entry
+        du -sh %s
+
+D       Disk usage of this directory (recursive), and file count
+        echo "Files: $(find %d -type f | wc -l)"
+        du -sh %d
+
++ x /usr/bin/git | x /opt/homebrew/bin/git | x /usr/local/bin/git
+g       Git status of this directory
+        git -C %d status
+
++ x /usr/bin/git | x /opt/homebrew/bin/git | x /usr/local/bin/git & ! t t
+l       Git log of the current file
+        git -C %d log --follow -- "$(basename %f)" | ${PAGER:-less}
+
+r       Copy tagged/current file(s) to a remote host (scp)
+        echo -n "To which host?: "
+        read Host
+        echo -n "To which directory on $Host?: "
+        read Dir
+        scp -p %s "${Host}:${Dir}"

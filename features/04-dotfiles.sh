@@ -310,12 +310,38 @@ _deploy_mc() {
     local mc_ini="$HOME/.config/mc/ini"
     _mc_set_key "$mc_ini" skin "$MC_SKIN"
     # auto_save_setup persists mc's *entire* live session state (including
-    # the active skin) back into this ini on every exit — so any in-session
-    # skin change (even just previewing one from Options > Appearance)
-    # permanently overwrites the line above. Pin it off so skin= actually
-    # stays put; deliberate option changes still persist via Options >
-    # Save Setup (F9) when you want them to.
+    # the active skin) back into this ini on every exit. Pin it off, but
+    # note it only covers the at-exit autosave — see the chmod below for
+    # the write path this doesn't cover.
     _mc_set_key "$mc_ini" auto_save_setup false
+    # Lynx-like motion (Options > Panel options): Left = go to the parent
+    # directory, Right = enter a directory / open a file — arrow-key parity
+    # with how Dired's single-key navigation feels, instead of the default
+    # where the arrow keys only move the cursor within the panel.
+    _mc_set_key "$mc_ini" navigate_with_arrows true
+
+    # mc's Options dialogs (Panel options, Appearance, ...) and Options >
+    # Save setup write the whole ini immediately on confirm, regardless of
+    # auto_save_setup — found on 2026-11-22 via a long-forgotten mc pane
+    # (open for weeks in a persistent tmux session) that still had its
+    # Oct-26 in-memory config and reset skin=/auto_save_setup= the moment
+    # any Options dialog in it was confirmed. auto_save_setup=false can't
+    # stop that; this can. mc writes the ini with a plain truncating
+    # open(), not a write-temp-then-rename, so a 444 file simply makes
+    # that write fail (mc shows a harmless "Cannot save file" message and
+    # keeps running) — verified empirically against an isolated test ini.
+    # _mc_set_key's own edits still land: its mv-over-the-file replaces the
+    # directory entry, which only needs write access to the directory, not
+    # to the file being replaced. To change an option by hand in the UI
+    # (Options > Save setup or any Options dialog's OK) and have it stick,
+    # `chmod u+w "$mc_ini"` first; the next `bash install.sh dotfiles` run
+    # re-locks it.
+    chmod 444 "$mc_ini"
+
+    # F2 user menu, modeled on Dired/Dirvish operations (dired-dwim-target,
+    # dired-diff, dired-do-compress-to); see dotfiles/mc/menu for what was
+    # dropped from and added to upstream's mc.menu.
+    _deploy_link "$DOTFILES/mc/menu" "$HOME/.config/mc/menu"
 
     # `sudo mc` runs as root, with its own separate config under root's
     # HOME — this repo's install never runs as root, so that copy has to be
@@ -323,6 +349,7 @@ _deploy_mc() {
     #   sudo mkdir -p /var/root/.local/share/mc/skins /var/root/.config/mc
     #   sudo cp "$DOTFILES/mc/skins/$MC_SKIN_ROOT.ini" /var/root/.local/share/mc/skins/
     #   sudo sh -c "printf '[Midnight-Commander]\nskin=$MC_SKIN_ROOT\nauto_save_setup=false\n' > /var/root/.config/mc/ini"
+    #   sudo chmod 444 /var/root/.config/mc/ini
     # (use /root instead of /var/root on Linux.)
 }
 
