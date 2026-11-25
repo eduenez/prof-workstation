@@ -1,0 +1,5 @@
+#!/bin/sh
+# qemacs-nw — QEmacs in the terminal, never an X window (plain `qe` opens one where $DISPLAY is set).
+# One word, so it also works where a program wants a single executable for an editor.
+# Linked into ~/.local/bin by features/19-qemacs.sh, which builds ~/.local/bin/qemacs.
+exec "$HOME/.local/bin/qemacs" -nw "$@"

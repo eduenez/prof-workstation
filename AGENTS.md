@@ -510,6 +510,20 @@ machine (MacPorts). The `dotfiles/` are adapted from `~/.zshrc`, `~/.zprofile`,
   shadowed by the pinned 6.5.2.
 - `sudo` needs a terminal, so an agent cannot run `01-pkgmgr` / `03-apt-pkgs` itself; ask the owner.
 
+### 2026-11-25 — QEmacs: XShm, `qemacs-nw`, launcher entry (Claude Fable 5.2 / Claude Code)
+
+- The Linux build already had the X11 window (X11 + Xv); it runs under XWayland on a Wayland
+  desktop (tested on ChatEDG, KDE Plasma 6). QEmacs has no native Wayland display.
+- `19-qemacs` now passes `--enable-xshm` when `XShm.h` exists: upstream's configure tests for
+  `Xshm.h` (wrong case), so it never detected it. The stamp file records the options, so a change
+  of options rebuilds. Not enabled: FFmpeg (wants an FFmpeg source tree with an old API) and
+  `--enable-xrender` (it only links libXrender; the Xft code is behind `CONFIG_XFT`, which
+  configure never sets).
+- New `dotfiles/bin/qemacs-nw` (`qemacs -nw`), linked into `~/.local/bin` by the feature. It
+  replaces a hand-made `/usr/local/bin/qemacs-nw` on ChatEDG that pointed at the removed 6.4.1.
+- New step writes `~/.local/share/applications/qemacs.desktop` (Linux, X11 builds only;
+  generated, since `Exec` needs an absolute path). The window sets no `WM_CLASS`.
+
 ## Architecture
 
 ```
