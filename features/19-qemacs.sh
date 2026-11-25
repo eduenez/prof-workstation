@@ -29,9 +29,11 @@ _build_qemacs() {
     src="$(mktemp -d)"
     info "Building QEmacs ${QEMACS_REV:0:7}..."
     # configure writes its objects in the current directory, hence the cd.
+    # No -j: with X11 the qe and xqe sub-makes both regenerate fbffonts.c, and in parallel one
+    # compiles it while the other is still writing it ("expected expression").  Serial takes ~25 s.
     git clone -q "$QEMACS_REPO" "$src" \
         && git -C "$src" checkout -q "$QEMACS_REV" \
-        && (cd "$src" && ./configure --prefix="$PREFIX" >/dev/null && make -j4 >/dev/null 2>&1) \
+        && (cd "$src" && ./configure --prefix="$PREFIX" >/dev/null && make >/dev/null 2>&1) \
         && [[ $("$src/qe" -V 2>&1) == *QEmacs* ]] \
         && make -C "$src" install >/dev/null \
         && echo "$QEMACS_REV" > "$STAMP"

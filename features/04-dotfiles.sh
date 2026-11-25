@@ -92,6 +92,11 @@ _deploy_tmux() {
     for f in tm tmux-agent-link; do
         _deploy_link "$DOTFILES/bin/$f" "$HOME/.local/bin/$f"
     done
+    # A running server keeps the config it started with (possibly weeks old: old prefix, missing
+    # bindings), and `prefix r` only exists once the new config is loaded.  Reload it.
+    if command_exists tmux && tmux list-sessions &>/dev/null; then
+        tmux source-file "$HOME/.tmux.conf" && info "  Reloaded ~/.tmux.conf in the running tmux server."
+    fi
 }
 
 _deploy_ghostty() {

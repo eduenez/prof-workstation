@@ -490,6 +490,26 @@ machine (MacPorts). The `dotfiles/` are adapted from `~/.zshrc`, `~/.zprofile`,
   owner's actual Ghostty is on the MacBook, so this needs `git pull && bash install.sh dotfiles`
   there, then `cmd+shift+,` to reload (no restart needed; documented at the top of the file).
 
+### 2026-11-25 — first full `install.sh` run on ChatEDG (Ubuntu 26.04): four fixes (Claude Fable 5.2 / Claude Code)
+
+- **tmux still on `C-b`, no `C-Tab`:** not a deployment bug. The links were right, but the tmux
+  server had been running since Oct 31 and keeps the config it started with; reloading Ghostty's
+  config does not touch tmux, and `prefix r` exists only once the new config is loaded.
+  `_deploy_tmux` now runs `tmux source-file ~/.tmux.conf` when a server is running.
+- **`03-apt-pkgs`:** the list reader skipped whole-line comments only, so
+  `joe   # jmacs: …` was passed to apt as one package name. It now strips trailing comments.
+- **`09-r-pkgs`:** Debian/Ubuntu's R puts the root-owned `/usr/local/lib/R/site-library` first and
+  adds the user library only if its directory exists, so `install.packages()` failed with "lib is
+  not writable". `r-packages.R` now creates and uses `R_LIBS_USER` in that case, and exits non-zero
+  when a package fails (R itself only warns). Source builds also need headers, now in
+  `lists/apt-packages.txt` (`libharfbuzz-dev`, `libfribidi-dev`, `libjpeg-dev`, `libgit2-dev`, …):
+  without them `textshaping` and `ragg` fail, and with them `tidyverse`, `devtools`, `pkgdown`.
+- **`19-qemacs`:** `make -j4` races when X11 headers are present (the `qe` and `xqe` sub-makes both
+  regenerate `fbffonts.c`; one compiles it half-written). Now a serial `make` (~25 s). The feature
+  only looks in `~/.local/bin`: ChatEDG also has a hand-built 6.4.1 in `/usr/local/bin`, now
+  shadowed by the pinned 6.5.2.
+- `sudo` needs a terminal, so an agent cannot run `01-pkgmgr` / `03-apt-pkgs` itself; ask the owner.
+
 ## Architecture
 
 ```

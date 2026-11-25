@@ -30,7 +30,9 @@ _install_pkgs() {
     fi
     local to_install=()
     while IFS= read -r pkg; do
-        [[ -z "$pkg" || "$pkg" =~ ^[[:space:]]*# ]] && continue
+        pkg="${pkg%%#*}"                       # drop comments, whole-line or trailing
+        pkg="${pkg//[[:space:]]/}"
+        [[ -z "$pkg" ]] && continue
         dpkg -s "$pkg" &>/dev/null || to_install+=("$pkg")
     done < "$PKGLIST"
 

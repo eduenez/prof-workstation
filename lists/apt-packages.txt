@@ -42,6 +42,18 @@ nodejs
 npm
 r-base
 r-base-dev
+# Headers that R packages in lists/r-packages.R compile against (CRAN is source-only on Linux):
+# textshaping (harfbuzz, fribidi) and ragg (freetype, tiff, jpeg, webp), both needed by
+# tidyverse, devtools and pkgdown; xml2, systemfonts (fontconfig), gert (libgit2).
+libharfbuzz-dev
+libfribidi-dev
+libfreetype-dev
+libtiff-dev
+libjpeg-dev
+libwebp-dev
+libxml2-dev
+libfontconfig-dev
+libgit2-dev
 sbcl
 
 # ── Python build dependencies (for uv-managed Python) ────────────────

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # 09-r-pkgs — Bootstrap R packages from lists/r-packages.R.
-# R itself is installed by 02-brew-bundle (brew "r").
+# R itself is installed by 02-brew-bundle (brew "r") or 03-apt-pkgs (r-base, plus the -dev
+# headers that source builds need).
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/lib/common.sh"
 
 _install_r_pkgs() {
