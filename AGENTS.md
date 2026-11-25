@@ -613,13 +613,13 @@ citizen but receives less testing.
 | `00-prereqs` | ✓ | — |
 | `01-pkgmgr` | ✓ | — |
 | `02-brew-bundle` | ✓ | — |
-| `03-apt-pkgs` | ✓ | — |
-| `04-dotfiles` | ✓ | ✓ mac-studio 2026-06-03 · macbook-gai 2026-09-13 |
+| `03-apt-pkgs` | ✓ | ✓ ChatEDG (Ubuntu 26.04) 2026-11-25 |
+| `04-dotfiles` | ✓ | ✓ mac-studio 2026-06-03 · macbook-gai 2026-09-13 · ChatEDG 2026-11-25 |
 | `05-emacs` | ✓ | — |
 | `06-vscode` | ✓ | — |
 | `07-python` | ✓ | — |
 | `08-ruby` | ✓ | — |
-| `09-r-pkgs` | ✓ | — |
+| `09-r-pkgs` | ✓ | ✓ ChatEDG (Ubuntu 26.04) 2026-11-25 |
 | `10-cloud` | ✓ | — |
 | `11-ai-tools` | ✓ | — |
 | `12-macos-prefs` | ✓ | — |
@@ -629,7 +629,7 @@ citizen but receives less testing.
 | `16-globalprotect` | ✓ | ✓ mac-studio 2026-10-23 |
 | `17-repos` | ✓ (Linux: systemd user timer) | ✓ macbook-gai (MacPorts) 2026-10-25 · ChatEDG (Ubuntu) 2026-11-15 |
 | `18-latex-tools` | ✓ | ✓ eduardoacstudio 2026-10-25 |
-| `19-qemacs` | ✓ | builds on Ubuntu (DK's Linux VM) 2026-11-08 |
+| `19-qemacs` | ✓ | builds on Ubuntu (DK's Linux VM) 2026-11-08 · ✓ ChatEDG 2026-11-25 |
 
 Update the "Tested" column as features are exercised on the Mac Studio.
 
