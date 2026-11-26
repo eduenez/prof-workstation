@@ -45,6 +45,12 @@ unset _gcloud_prefix
 # Homebrew's elan-init is already on PATH.
 [[ -d "$HOME/.elan/bin" ]] && export PATH="$HOME/.elan/bin:$PATH"
 
+# ── Local bin (uv tools, pip --user installs, texlab) ─────────────────
+# Here, not in ~/.zshrc: login shells that aren't interactive (ssh host CMD,
+# Emacs's exec-path-from-shell, which runs `zsh -l') read only this file.
+# Last of the PATH lines, so it comes first.
+[[ ":$PATH:" == *":$HOME/.local/bin:"* ]] || export PATH="$HOME/.local/bin:$PATH"
+
 # ── SSH agent (Bitwarden) ─────────────────────────────────────────────
 # A forwarded agent (ssh -A / ForwardAgent from the laptop: sshd sets /tmp/ssh-*/agent.*) wins, so approval prompts
 # reach the Bitwarden you are sitting at; otherwise this machine's own Bitwarden.

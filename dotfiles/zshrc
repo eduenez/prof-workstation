@@ -56,8 +56,10 @@ else
     export EDITOR='emacs -nw' VISUAL='emacs -nw'
 fi
 
-# ── Local bin (uv tools, pip --user installs) ─────────────────────────
-export PATH="$HOME/.local/bin:$PATH"
+# ── Local bin: set in ~/.zprofile; this covers interactive shells that aren't
+# login shells and didn't inherit it (a terminal started by systemd's user
+# manager, say).  The guard keeps PATH free of duplicates.
+[[ ":$PATH:" == *":$HOME/.local/bin:"* ]] || export PATH="$HOME/.local/bin:$PATH"
 
 # ── Aliases ───────────────────────────────────────────────────────────
 # GNU ls: `gls` from Homebrew coreutils on macOS; plain `ls` is already
