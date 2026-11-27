@@ -37,6 +37,35 @@ if [[ "$OS" == "Linux" ]] && grep -qi microsoft /proc/version 2>/dev/null; then
     IS_WSL=true
 fi
 
+# ── apt ───────────────────────────────────────────────────────────────
+# Install the packages named in list file $1 (one per line; # starts a comment), one at a
+# time so a single failure does not block the rest.  Returns non-zero if any failed.
+apt_install_list() {
+    local list="$1" pkg to_install=() failed=0
+    if [[ ! -f "$list" ]]; then
+        err "Package list not found: $list"
+        return 1
+    fi
+    while IFS= read -r pkg; do
+        pkg="${pkg%%#*}"                       # drop comments, whole-line or trailing
+        pkg="${pkg//[[:space:]]/}"
+        [[ -z "$pkg" ]] && continue
+        dpkg -s "$pkg" &>/dev/null || to_install+=("$pkg")
+    done < "$list"
+
+    if [[ ${#to_install[@]} -eq 0 ]]; then
+        info "All apt packages in ${list##*/} already installed."
+        return 0
+    fi
+
+    info "Installing ${#to_install[@]} package(s)..."
+    for pkg in "${to_install[@]}"; do
+        info "  apt install $pkg..."
+        sudo apt-get install -y "$pkg" || { warn "  Failed: $pkg"; ((failed++)) || true; }
+    done
+    [[ "$failed" -eq 0 ]]
+}
+
 # ── Step runner ───────────────────────────────────────────────────────
 FAILED_STEPS=()
 

@@ -524,6 +524,18 @@ machine (MacPorts). The `dotfiles/` are adapted from `~/.zshrc`, `~/.zprofile`,
 - New step writes `~/.local/share/applications/qemacs.desktop` (Linux, X11 builds only;
   generated, since `Exec` needs an absolute path). The window sets no `WM_CLASS`.
 
+### 2026-11-27 — `20-linux-desktop`: CopyQ at login (Claude Fable 5.2 / Claude Code)
+
+- New `features/20-linux-desktop.sh`, for Linux machines with their own desktop session: it
+  exits on macOS and on WSL (`$IS_WSL`; the desktop there is Windows, clipboard manager Ditto).
+  Installs `lists/apt-packages-desktop.txt` (so far `copyq`) and links CopyQ's launcher entry
+  into `~/.config/autostart`. An existing autostart entry is left alone, including one with
+  `Hidden=true` (the user turned it off in the desktop's settings).
+- Not `copyq config autostart true`: that needs a running CopyQ server. On ChatEDG it had been
+  set that way by hand, so the entry there is CopyQ's own copy, not the link.
+- `apt_install_list FILE` moved from `03-apt-pkgs` into `lib/common.sh`; both features use it.
+- Plasma's Klipper still runs beside CopyQ; turning it off is a manual tray setting.
+
 ## Architecture
 
 ```
@@ -644,6 +656,7 @@ citizen but receives less testing.
 | `17-repos` | ✓ (Linux: systemd user timer) | ✓ macbook-gai (MacPorts) 2026-10-25 · ChatEDG (Ubuntu) 2026-11-15 |
 | `18-latex-tools` | ✓ | ✓ eduardoacstudio 2026-10-25 |
 | `19-qemacs` | ✓ | builds on Ubuntu (DK's Linux VM) 2026-11-08 · ✓ ChatEDG 2026-11-25 |
+| `20-linux-desktop` | ✓ | ✓ ChatEDG 2026-11-27 (packages present, autostart entry pre-existing; link path tested under a scratch `$HOME`) |
 
 Update the "Tested" column as features are exercised on the Mac Studio.
 

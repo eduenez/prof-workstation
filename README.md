@@ -49,6 +49,7 @@ tools, fonts, and GUI applications.
 | `detex` | Patched `detex` in `~/.local/bin` (TeX Live's crashes on `\includeonly -n`, breaking Recoll) |
 | `globalprotect` | macOS: `gp-on` / `gp-off` in `~/.local/bin`; stops GlobalProtect (UTSA VPN) autostarting at login |
 | `repos` | the `repos` tool (fetch every clone, fast-forward where safe; from the private `site-tools` repo) in `~/.local/bin`, plus an hourly fetch-only LaunchAgent (macOS) or systemd user timer (Linux) |
+| `linux-desktop` | Desktop Linux only (not WSL): packages in `lists/apt-packages-desktop.txt` (CopyQ), and CopyQ started at login |
 
 **Homebrew Brewfile covers:**
 core Unix tools · Git · TeX Live (via `mactex-no-gui`) · pandoc · gnuplot ·
@@ -197,7 +198,9 @@ prof-workstation/
 │   ├── 15-detex.sh     # skips itself once TeX Live's detex is fixed
 │   ├── 16-globalprotect.sh  # macOS only; also fine on MacPorts machines
 │   ├── 17-repos.sh     # clones site-tools, links `repos`, installs the hourly fetch (LaunchAgent / systemd timer)
-│   └── 18-latex-tools.sh  # bibtex-tidy at the version pinned in math-bibliography
+│   ├── 18-latex-tools.sh  # bibtex-tidy at the version pinned in math-bibliography
+│   ├── 19-qemacs.sh    # QEmacs built into ~/.local; qemacs-nw; launcher entry on Linux
+│   └── 20-linux-desktop.sh  # desktop Linux only (not WSL): CopyQ + autostart
 ├── dotfiles/
 │   ├── zshrc
 │   ├── zprofile
@@ -209,6 +212,7 @@ prof-workstation/
 │   └── karabiner/
 ├── lists/
 │   ├── apt-packages.txt
+│   ├── apt-packages-desktop.txt  # desktop Linux only (not WSL)
 │   ├── vscode-extensions.txt
 │   ├── pip-requirements.txt
 │   └── r-packages.R

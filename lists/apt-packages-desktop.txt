@@ -1,0 +1,5 @@
+# apt-packages-desktop.txt — Packages for a Linux machine with its own desktop session.
+# Installed by features/20-linux-desktop.sh; skipped on WSL, where the desktop is Windows
+# (clipboard manager there: Ditto).  One package per line; # starts a comment.
+
+copyq               # clipboard manager; 20-linux-desktop also starts it at login
