@@ -138,6 +138,7 @@ paths:
 _deploy_claude() {
     mkdir -p "$HOME/.claude/skills"
     _deploy_link "$DOTFILES/claude/keybindings.json" "$HOME/.claude/keybindings.json"
+    _deploy_link "$DOTFILES/claude/CLAUDE.md" "$HOME/.claude/CLAUDE.md"
     local skill
     for skill in "$DOTFILES"/claude/skills/*/; do
         skill="${skill%/}"
@@ -366,7 +367,7 @@ run_step "tmux.conf"          _deploy_tmux
 run_step "Ghostty config"     _deploy_ghostty
 run_step "latexmkrc"          _deploy_latexmkrc
 run_step "latexindent (single backup)" _deploy_latexindent
-run_step "Claude Code keybindings + skills" _deploy_claude
+run_step "Claude Code CLAUDE.md, keybindings + skills" _deploy_claude
 run_step "SSH config template" _deploy_ssh_config
 run_step "ssh rc (X11 cookie)" _deploy_ssh_rc
 run_step "ssh shared GitHub connection" _deploy_ssh_github

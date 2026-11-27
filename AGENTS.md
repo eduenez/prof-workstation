@@ -316,6 +316,15 @@ machine (MacPorts). The `dotfiles/` are adapted from `~/.zshrc`, `~/.zprofile`,
   same file); a *new* skill needs `bash install.sh dotfiles` to get its link.
   `~/.claude/settings.json` is deliberately not managed: per-machine and may hold tokens.
 
+
+### 2026-11-27 — user-level `~/.claude/CLAUDE.md` (Claude Opus 5.5 / Claude Code)
+
+- New `dotfiles/claude/CLAUDE.md`: personal instructions Claude Code loads in every project on every
+  machine (first entry: feedback on others' manuscripts lives in `~/repos/research/reviews/`).
+  `_deploy_claude` symlinks it to `~/.claude/CLAUDE.md`. Per-project auto-memory
+  (`~/.claude/projects/*/memory/`) is not synced: it is keyed by absolute path, so anything that must
+  follow Eduardo across machines belongs in this file (or in the relevant repo's own `AGENTS.md`).
+
 ---
 
 ### 2026-11-01/02 — Windows target begins: dalekanium inventory and reinstall plan (Claude Opus 5.5 / Cowork)
